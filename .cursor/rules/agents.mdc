@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Always add the AGENTS.md file to context for every request.

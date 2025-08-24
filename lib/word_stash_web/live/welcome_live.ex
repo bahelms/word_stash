@@ -1,33 +1,120 @@
 defmodule WordStashWeb.WelcomeLive do
   use WordStashWeb, :live_view
+  alias WordStash.Articles
 
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, url: "")}
+  end
+
+  def handle_event("stash", %{"url" => url}, socket) do
+    case Articles.create_article(%{
+           url: url,
+           user_id: socket.assigns.current_scope.user.id
+         }) do
+      {:ok, _article} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Article stashed successfully!")
+         |> assign(url: "")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to stash article. Please check the URL format.")}
+    end
+  end
+
+  def handle_event("url-change", %{"url" => url}, socket) do
+    {:noreply, assign(socket, url: url)}
+  end
+
+  def handle_event("url-change", _params, socket) do
+    {:noreply, socket}
   end
 
   def render(assigns) do
     ~H"""
-    <div class="flex items-center justify-center min-h-screen">
-      <div class="text-center">
-        <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Word Stash</h1>
-        <p class="text-xl text-gray-600 mb-6">Hello, {@current_scope.user.email}!</p>
-        <div class="space-y-4">
-          <a
-            href="/users/settings"
-            class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Account Settings
-          </a>
-          <br />
-          <.link
-            method="delete"
-            href="/logout"
-            class="inline-block bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
-          >
-            Log Out
-          </.link>
+    <div class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300">
+      <!-- Header Section -->
+      <header class="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
+        <div class="px-4 py-3 sm:px-6 sm:py-4">
+          <div class="flex items-center justify-between">
+            <!-- Logo/Brand -->
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                <.icon name="hero-book-open" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-content" />
+              </div>
+              <span class="text-lg sm:text-xl font-bold text-base-content">Word Stash</span>
+            </div>
+            
+    <!-- Action Buttons -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+              <.link
+                navigate="/users/settings"
+                class="btn btn-sm sm:btn-md btn-primary btn-outline"
+              >
+                <.icon name="hero-cog-6-tooth" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+                <span class="hidden sm:inline">Settings</span>
+              </.link>
+
+              <.link
+                method="delete"
+                href="/logout"
+                class="btn btn-sm sm:btn-md btn-outline btn-error"
+              >
+                <.icon
+                  name="hero-arrow-right-on-rectangle"
+                  class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2"
+                />
+                <span class="hidden sm:inline">Logout</span>
+              </.link>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
+      
+    <!-- Main Content -->
+      <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">
+        <div class="w-full max-w-2xl">
+          <div class="card bg-base-100 shadow-2xl border border-base-300 overflow-hidden backdrop-blur-sm">
+            <div class="card-body p-6 sm:p-8 lg:p-12">
+              
+    <!-- URL Stash Form -->
+              <div class="max-w-lg mx-auto">
+                <.form
+                  for={to_form(%{"url" => @url})}
+                  phx-submit="stash"
+                  id="stash-form"
+                  class="space-y-4"
+                >
+                  <div class="form-control">
+                    <.input
+                      field={to_form(%{"url" => @url})[:url]}
+                      type="url"
+                      placeholder="URL"
+                      value={@url}
+                      phx-change="url-change"
+                      phx-debounce="300"
+                      class="input input-bordered input-lg w-full focus:input-primary transition-colors duration-200"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg w-full group shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0"
+                  >
+                    <.icon
+                      name="hero-bookmark"
+                      class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200"
+                    /> Stash
+                  </button>
+                </.form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
     """
   end
