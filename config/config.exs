@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :word_stash, :scopes,
+  user: [
+    default: true,
+    module: WordStash.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: WordStash.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :word_stash,
   ecto_repos: [WordStash.Repo],
   generators: [timestamp_type: :utc_datetime]
