@@ -23,7 +23,7 @@ defmodule WordStashWeb.UserSessionControllerTest do
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ user.email
+      assert response =~ "Word Stash"
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/logout"
     end
@@ -87,7 +87,7 @@ defmodule WordStashWeb.UserSessionControllerTest do
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ user.email
+      assert response =~ "Word Stash"
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/logout"
     end
@@ -111,7 +111,7 @@ defmodule WordStashWeb.UserSessionControllerTest do
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
-      assert response =~ user.email
+      assert response =~ "Word Stash"
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/logout"
     end

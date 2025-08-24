@@ -27,7 +27,8 @@ defmodule WordStashWeb.WelcomeLive do
 
         {:noreply,
          socket
-         |> put_flash(:error, error_message)}
+         |> put_flash(:error, error_message)
+         |> assign(url: url)}
     end
   end
 
