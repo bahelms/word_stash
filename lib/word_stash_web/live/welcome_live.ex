@@ -18,9 +18,16 @@ defmodule WordStashWeb.WelcomeLive do
          |> assign(url: "")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        error_message =
+          case changeset.errors do
+            [url: {"URL has already been stashed", _}] -> "This URL has already been stashed!"
+            [url: {msg, _}] -> "Invalid URL: #{msg}"
+            _ -> "Failed to stash article. Please check the URL format."
+          end
+
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to stash article. Please check the URL format.")}
+         |> put_flash(:error, error_message)}
     end
   end
 
@@ -72,6 +79,9 @@ defmodule WordStashWeb.WelcomeLive do
           </div>
         </div>
       </header>
+      
+    <!-- Flash Messages (Error Only) -->
+      <.flash kind={:error} flash={@flash} />
       
     <!-- Main Content -->
       <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">

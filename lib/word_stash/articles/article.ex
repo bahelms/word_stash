@@ -22,6 +22,7 @@ defmodule WordStash.Articles.Article do
     |> validate_length(:url, max: 2048)
     |> validate_length(:title, max: 255)
     |> validate_length(:description, max: 1000)
+    |> unique_constraint(:url, name: :articles_url_index, message: "URL has already been stashed")
     |> assoc_constraint(:user)
   end
 end
