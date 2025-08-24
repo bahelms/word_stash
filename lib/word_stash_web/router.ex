@@ -17,7 +17,7 @@ defmodule WordStashWeb.Router do
   scope "/", WordStashWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", WelcomeLive
   end
 
   # Other scopes may use custom stacks.
