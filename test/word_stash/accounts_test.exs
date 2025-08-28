@@ -77,13 +77,12 @@ defmodule WordStash.AccountsTest do
       assert "has already been taken" in errors_on(changeset).email
     end
 
-    test "registers users without password" do
+    test "registers users with password and confirms them" do
       email = unique_user_email()
       {:ok, user} = Accounts.register_user(valid_user_attributes(email: email))
       assert user.email == email
-      assert is_nil(user.hashed_password)
-      assert is_nil(user.confirmed_at)
-      assert is_nil(user.password)
+      assert user.hashed_password
+      assert user.confirmed_at
     end
   end
 
@@ -331,7 +330,7 @@ defmodule WordStash.AccountsTest do
 
   describe "login_user_by_magic_link/1" do
     test "confirms user and expires tokens" do
-      user = unconfirmed_user_fixture()
+      user = unconfirmed_user_without_password_fixture()
       refute user.confirmed_at
       {encoded_token, hashed_token} = generate_user_magic_link_token(user)
 
@@ -351,7 +350,7 @@ defmodule WordStash.AccountsTest do
     end
 
     test "raises when unconfirmed user has password set" do
-      user = unconfirmed_user_fixture()
+      user = unconfirmed_user_without_password_fixture()
       {1, nil} = Repo.update_all(User, set: [hashed_password: "hashed"])
       {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
 
@@ -372,7 +371,7 @@ defmodule WordStash.AccountsTest do
 
   describe "deliver_login_instructions/2" do
     setup do
-      %{user: unconfirmed_user_fixture()}
+      %{user: unconfirmed_user_without_password_fixture()}
     end
 
     test "sends token through notification", %{user: user} do

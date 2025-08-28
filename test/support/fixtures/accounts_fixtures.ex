@@ -8,13 +8,16 @@ defmodule WordStash.AccountsFixtures do
 
   alias WordStash.Accounts
   alias WordStash.Accounts.Scope
+  alias WordStash.Accounts.User
+  alias WordStash.Repo
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
-      email: unique_user_email()
+      email: unique_user_email(),
+      password: valid_user_password()
     })
   end
 
@@ -23,6 +26,18 @@ defmodule WordStash.AccountsFixtures do
       attrs
       |> valid_user_attributes()
       |> Accounts.register_user()
+
+    user
+  end
+
+  def unconfirmed_user_without_password_fixture(attrs \\ %{}) do
+    # Create a user with just email (no password) for testing magic link scenarios
+    email = attrs[:email] || unique_user_email()
+
+    user =
+      %User{email: email}
+      |> User.email_changeset(%{email: email}, validate_unique: false)
+      |> Repo.insert!()
 
     user
   end

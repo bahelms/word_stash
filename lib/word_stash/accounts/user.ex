@@ -57,6 +57,19 @@ defmodule WordStash.Accounts.User do
   end
 
   @doc """
+  A user changeset for new user registration.
+
+  It requires both email and password, and automatically confirms the account.
+  """
+  def registration_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :password])
+    |> validate_email(validate_unique: true)
+    |> password_changeset(attrs)
+    |> put_change(:confirmed_at, DateTime.utc_now(:second))
+  end
+
+  @doc """
   A user changeset for changing the password.
 
   It is important to validate the length of the password, as long passwords may

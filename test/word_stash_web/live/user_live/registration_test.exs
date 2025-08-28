@@ -46,8 +46,22 @@ defmodule WordStashWeb.UserLive.RegistrationTest do
         render_submit(form)
         |> follow_redirect(conn, ~p"/login")
 
-      assert html =~
-               ~r/An email was sent to .*, please access it to confirm your account/
+      assert html =~ "Account created successfully! You can now log in."
+    end
+
+    test "creates confirmed account that can log in immediately", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/register")
+
+      email = unique_user_email()
+
+      # Register the user
+      form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
+      render_submit(form)
+
+      # Verify the user was created and confirmed by checking the database
+      user = WordStash.Accounts.get_user_by_email(email)
+      assert user
+      assert user.confirmed_at
     end
 
     test "renders errors for duplicated email", %{conn: conn} do
