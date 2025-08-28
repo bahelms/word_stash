@@ -419,6 +419,58 @@ defmodule WordStashWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders the shared application header with logo and action buttons slot.
+
+  ## Examples
+
+      <.app_header>
+        <:actions>
+          <.link navigate="/users/settings" class="btn btn-sm sm:btn-md btn-primary btn-outline">
+            <.icon name="hero-cog-6-tooth" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+            <span class="hidden sm:inline">Settings</span>
+          </.link>
+
+          <.link method="delete" href="/logout" class="btn btn-sm sm:btn-md btn-outline btn-error">
+            <.icon name="hero-arrow-right-on-rectangle" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+            <span class="hidden sm:inline">Logout</span>
+          </.link>
+        </:actions>
+      </.app_header>
+
+      <.app_header>
+        <:actions>
+          <.link navigate="/register" class="btn btn-sm sm:btn-md btn-primary btn-outline">
+            <.icon name="hero-user-plus" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+            <span class="hidden sm:inline">Sign Up</span>
+          </.link>
+        </:actions>
+      </.app_header>
+  """
+  slot :actions, doc: "the action buttons to display in the header"
+
+  def app_header(assigns) do
+    ~H"""
+    <header class="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
+      <div class="px-4 py-3 sm:px-6 sm:py-4">
+        <div class="flex items-center justify-between">
+          <!-- Logo/Brand -->
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+              <.icon name="hero-book-open" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-content" />
+            </div>
+            <span class="text-lg sm:text-xl font-bold text-base-content">Word Stash</span>
+          </div>
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            {render_slot(@actions)}
+          </div>
+        </div>
+      </div>
+    </header>
+    """
+  end
+
   ## JS Commands
 
   def show(js \\ %JS{}, selector) do
