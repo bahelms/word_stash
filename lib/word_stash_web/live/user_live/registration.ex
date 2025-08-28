@@ -7,45 +7,106 @@ defmodule WordStashWeb.UserLive.Registration do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            Register for an account
-            <:subtitle>
-              Already registered?
-              <.link navigate={~p"/login"} class="font-semibold text-brand hover:underline">
-                Log in
+    <div class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300">
+      <!-- Header Section -->
+      <header class="sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-300 shadow-sm">
+        <div class="px-4 py-3 sm:px-6 sm:py-4">
+          <div class="flex items-center justify-between">
+            <!-- Logo/Brand -->
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                <.icon name="hero-book-open" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-content" />
+              </div>
+              <span class="text-lg sm:text-xl font-bold text-base-content">Word Stash</span>
+            </div>
+            
+    <!-- Action Buttons -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+              <.link
+                navigate="/login"
+                class="btn btn-sm sm:btn-md btn-primary btn-outline"
+              >
+                <.icon
+                  name="hero-arrow-right-on-rectangle"
+                  class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2"
+                />
+                <span class="hidden sm:inline">Log In</span>
               </.link>
-              to your account now.
-            </:subtitle>
-          </.header>
+            </div>
+          </div>
         </div>
+      </header>
+      
+    <!-- Flash Messages -->
+      <.flash kind={:error} flash={@flash} />
+      <.flash kind={:info} flash={@flash} />
+      
+    <!-- Main Content -->
+      <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">
+        <div class="w-full max-w-md">
+          <div class="card bg-base-100 shadow-2xl border border-base-300 overflow-hidden backdrop-blur-sm">
+            <div class="card-body p-6 sm:p-8 lg:p-10">
+              
+    <!-- Registration Form -->
+              <div class="text-center mb-6">
+                <h1 class="text-2xl sm:text-3xl font-bold text-base-content mb-2">
+                  Create an account
+                </h1>
+                <p class="text-base-content/70">
+                  Already have an account?
+                  <.link navigate={~p"/login"} class="font-semibold text-primary hover:underline">
+                    Log in
+                  </.link>
+                  to your account now.
+                </p>
+              </div>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            required
-            phx-mounted={JS.focus()}
-          />
+              <.form
+                for={@form}
+                id="registration_form"
+                phx-submit="save"
+                phx-change="validate"
+                class="space-y-4"
+              >
+                <div class="form-control">
+                  <.input
+                    field={@form[:email]}
+                    type="email"
+                    label="Email"
+                    autocomplete="username"
+                    class="input input-bordered w-full focus:input-primary transition-colors duration-200"
+                    required
+                    phx-mounted={JS.focus()}
+                  />
+                </div>
 
-          <.input
-            field={@form[:password]}
-            type="password"
-            label="Password"
-            autocomplete="new-password"
-            required
-          />
+                <div class="form-control">
+                  <.input
+                    field={@form[:password]}
+                    type="password"
+                    label="Password"
+                    autocomplete="new-password"
+                    class="input input-bordered w-full focus:input-primary transition-colors duration-200"
+                    required
+                  />
+                </div>
 
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
-            Create an account
-          </.button>
-        </.form>
-      </div>
-    </Layouts.app>
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-lg w-full group shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0"
+                  phx-disable-with="Creating account..."
+                >
+                  <.icon
+                    name="hero-user-plus"
+                    class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200"
+                  /> Create an account
+                </button>
+              </.form>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
     """
   end
 

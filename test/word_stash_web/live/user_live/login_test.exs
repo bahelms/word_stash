@@ -10,36 +10,8 @@ defmodule WordStashWeb.UserLive.LoginTest do
 
       assert html =~ "Log in"
       assert html =~ "Sign up"
-      assert html =~ "Log in with email"
-    end
-  end
-
-  describe "user login - magic link" do
-    test "sends magic link email when user exists", %{conn: conn} do
-      user = user_fixture()
-
-      {:ok, lv, _html} = live(conn, ~p"/login")
-
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: user.email})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/login")
-
-      assert html =~ "If your email is in our system"
-
-      assert WordStash.Repo.get_by!(WordStash.Accounts.UserToken, user_id: user.id).context ==
-               "login"
-    end
-
-    test "does not disclose if user is registered", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/login")
-
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: "idonotexist@example.com"})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/login")
-
-      assert html =~ "If your email is in our system"
+      assert html =~ "Log in and stay logged in"
+      assert html =~ "Log in only this time"
     end
   end
 
@@ -85,7 +57,7 @@ defmodule WordStashWeb.UserLive.LoginTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/register")
 
-      assert login_html =~ "Register"
+      assert login_html =~ "Create an account"
     end
   end
 
@@ -98,12 +70,12 @@ defmodule WordStashWeb.UserLive.LoginTest do
     test "shows login page with email filled in", %{conn: conn, user: user} do
       {:ok, _lv, html} = live(conn, ~p"/login")
 
-      assert html =~ "You need to reauthenticate"
+      assert html =~ "Log in"
       refute html =~ "Register"
-      assert html =~ "Log in with email"
+      assert html =~ "Log in and stay logged in"
 
       assert html =~
-               ~s(<input type="email" name="user[email]" id="login_form_magic_email" value="#{user.email}")
+               ~s(<input type="email" name="user[email]" id="login_form_password_email" value="#{user.email}")
     end
   end
 end
