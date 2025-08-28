@@ -23,10 +23,6 @@ defmodule WordStashWeb.UserLive.Registration do
         </:actions>
       </.app_header>
       
-    <!-- Flash Messages -->
-      <.flash kind={:error} flash={@flash} />
-      <.flash kind={:info} flash={@flash} />
-      
     <!-- Main Content -->
       <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">
         <div class="w-full max-w-md">
