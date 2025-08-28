@@ -46,6 +46,14 @@ defmodule WordStashWeb.WelcomeLive do
       <.app_header>
         <:actions>
           <.link
+            navigate="/articles"
+            class="btn btn-sm sm:btn-md btn-primary btn-outline"
+          >
+            <.icon name="hero-book-open" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+            <span class="hidden sm:inline">Articles</span>
+          </.link>
+
+          <.link
             navigate="/users/settings"
             class="btn btn-sm sm:btn-md btn-primary btn-outline"
           >

@@ -58,6 +58,21 @@ defmodule WordStash.Articles do
   end
 
   @doc """
+  Lists all articles.
+
+  ## Examples
+
+      iex> list_articles()
+      [%Article{}, ...]
+
+  """
+  def list_articles do
+    Article
+    |> order_by([a], desc: a.inserted_at)
+    |> Repo.all()
+  end
+
+  @doc """
   Updates an article.
 
   ## Examples
