@@ -8,61 +8,146 @@ defmodule WordStashWeb.UserLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="text-center">
-        <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
-        </.header>
-      </div>
+    <div class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300">
+      <.app_header>
+        <:actions>
+          <.link
+            navigate="/"
+            class="btn btn-sm sm:btn-md btn-primary btn-outline"
+          >
+            <.icon name="hero-home" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+            <span class="hidden sm:inline">Home</span>
+          </.link>
 
-      <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-        <.input
-          field={@email_form[:email]}
-          type="email"
-          label="Email"
-          autocomplete="username"
-          required
-        />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
-      </.form>
+          <.link
+            method="delete"
+            href="/logout"
+            class="btn btn-sm sm:btn-md btn-outline btn-error"
+          >
+            <.icon
+              name="hero-arrow-right-on-rectangle"
+              class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2"
+            />
+            <span class="hidden sm:inline">Logout</span>
+          </.link>
+        </:actions>
+      </.app_header>
+      
+    <!-- Flash Messages -->
+      <.flash kind={:error} flash={@flash} />
+      
+    <!-- Main Content -->
+      <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">
+        <div class="w-full max-w-2xl">
+          <div class="card bg-base-100 shadow-2xl border border-base-300 overflow-hidden backdrop-blur-sm">
+            <div class="card-body p-6 sm:p-8 lg:p-12">
+              
+    <!-- Page Header -->
+              <div class="text-center mb-8">
+                <h1 class="text-2xl sm:text-3xl font-bold text-base-content mb-2">
+                  Account Settings
+                </h1>
+                <p class="text-base-content/70">
+                  Manage your account email address and password settings
+                </p>
+              </div>
+              
+    <!-- Email Update Form -->
+              <div class="mb-8">
+                <h2 class="text-xl font-semibold text-base-content mb-4">Update Email</h2>
+                <.form
+                  for={@email_form}
+                  id="email_form"
+                  phx-submit="update_email"
+                  phx-change="validate_email"
+                  class="space-y-4"
+                >
+                  <div class="form-control">
+                    <.input
+                      field={@email_form[:email]}
+                      type="email"
+                      label="Email"
+                      autocomplete="username"
+                      class="input input-bordered w-full focus:input-primary transition-colors duration-200"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg w-full group shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0"
+                    phx-disable-with="Changing..."
+                  >
+                    <.icon
+                      name="hero-envelope"
+                      class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200"
+                    /> Change Email
+                  </button>
+                </.form>
+              </div>
+              
+    <!-- Divider -->
+              <div class="divider my-8">or</div>
+              
+    <!-- Password Update Form -->
+              <div>
+                <h2 class="text-xl font-semibold text-base-content mb-4">Update Password</h2>
+                <.form
+                  for={@password_form}
+                  id="password_form"
+                  action={~p"/users/update-password"}
+                  method="post"
+                  phx-change="validate_password"
+                  phx-submit="update_password"
+                  phx-trigger-action={@trigger_submit}
+                  class="space-y-4"
+                >
+                  <input
+                    name={@password_form[:email].name}
+                    type="hidden"
+                    id="hidden_user_email"
+                    autocomplete="username"
+                    value={@current_email}
+                  />
 
-      <div class="divider" />
+                  <div class="form-control">
+                    <.input
+                      field={@password_form[:password]}
+                      type="password"
+                      label="New password"
+                      autocomplete="new-password"
+                      class="input input-bordered w-full focus:input-primary transition-colors duration-200"
+                      required
+                    />
+                  </div>
 
-      <.form
-        for={@password_form}
-        id="password_form"
-        action={~p"/users/update-password"}
-        method="post"
-        phx-change="validate_password"
-        phx-submit="update_password"
-        phx-trigger-action={@trigger_submit}
-      >
-        <input
-          name={@password_form[:email].name}
-          type="hidden"
-          id="hidden_user_email"
-          autocomplete="username"
-          value={@current_email}
-        />
-        <.input
-          field={@password_form[:password]}
-          type="password"
-          label="New password"
-          autocomplete="new-password"
-          required
-        />
-        <.input
-          field={@password_form[:password_confirmation]}
-          type="password"
-          label="Confirm new password"
-          autocomplete="new-password"
-        />
-        <.button variant="primary" phx-disable-with="Saving...">
-          Save Password
-        </.button>
-      </.form>
-    </Layouts.app>
+                  <div class="form-control">
+                    <.input
+                      field={@password_form[:password_confirmation]}
+                      type="password"
+                      label="Confirm new password"
+                      autocomplete="new-password"
+                      class="input input-bordered w-full focus:input-primary transition-colors duration-200"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg w-full group shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0"
+                    phx-disable-with="Saving..."
+                  >
+                    <.icon
+                      name="hero-key"
+                      class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200"
+                    /> Save Password
+                  </button>
+                </.form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
     """
   end
 
