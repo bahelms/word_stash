@@ -42,15 +42,14 @@ defmodule WordStashWeb.UserLive.ConfirmationTest do
                "Welcome back!"
 
       assert Accounts.get_user!(user.id).confirmed_at == user.confirmed_at
-
-      # log out, new conn
       conn = build_conn()
 
       {:ok, _lv, html} =
         live(conn, ~p"/login/#{token}")
         |> follow_redirect(conn, ~p"/login")
 
-      assert html =~ "Magic link is invalid or it has expired"
+      assert html =~ "Log in"
+      assert html =~ "Don&#39;t have an account?"
     end
 
     test "raises error for invalid token", %{conn: conn} do
@@ -58,7 +57,8 @@ defmodule WordStashWeb.UserLive.ConfirmationTest do
         live(conn, ~p"/login/invalid-token")
         |> follow_redirect(conn, ~p"/login")
 
-      assert html =~ "Magic link is invalid or it has expired"
+      assert html =~ "Log in"
+      assert html =~ "Don&#39;t have an account?"
     end
   end
 end

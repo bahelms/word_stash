@@ -14,6 +14,14 @@ defmodule WordStash.DataCase do
   this option is not recommended for other databases.
   """
 
+  defmodule StubHTTPClient do
+    @behaviour WordStash.HTTPClientBehaviour
+
+    def get(_url) do
+      {:ok, "Stub HTML"}
+    end
+  end
+
   use ExUnit.CaseTemplate
 
   using do
@@ -24,11 +32,15 @@ defmodule WordStash.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import WordStash.DataCase
+      import Mox
+
+      setup :verify_on_exit!
     end
   end
 
   setup tags do
     WordStash.DataCase.setup_sandbox(tags)
+    Mox.stub_with(WordStash.HTTPClientMock, WordStash.DataCase.StubHTTPClient)
     :ok
   end
 

@@ -6,6 +6,7 @@ defmodule WordStash.Articles do
   import Ecto.Query, warn: false
   alias WordStash.Repo
   alias WordStash.Articles.Article
+  alias WordStash.BackgroundJobs
 
   @doc """
   Creates an article.
@@ -20,9 +21,16 @@ defmodule WordStash.Articles do
 
   """
   def create_article(attrs \\ %{}) do
-    %Article{}
-    |> Article.changeset(attrs)
-    |> Repo.insert()
+    case %Article{}
+         |> Article.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, article} = result ->
+        BackgroundJobs.fetch_article_title(article.id, article.url)
+        result
+
+      error ->
+        error
+    end
   end
 
   @doc """
@@ -117,5 +125,19 @@ defmodule WordStash.Articles do
   """
   def change_article(%Article{} = article, attrs \\ %{}) do
     Article.changeset(article, attrs)
+  end
+
+  @doc """
+  Updates just the title of an article.
+
+  ## Examples
+
+      iex> update_article_title(article, "New Title")
+      {:ok, %Article{}}
+
+  """
+  def update_article_title(article_id, title) do
+    article = get_article!(article_id)
+    update_article(article, %{title: title})
   end
 end

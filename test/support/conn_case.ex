@@ -28,11 +28,15 @@ defmodule WordStashWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import WordStashWeb.ConnCase
+      import Mox
+
+      setup :verify_on_exit!
     end
   end
 
   setup tags do
     WordStash.DataCase.setup_sandbox(tags)
+    Mox.stub_with(WordStash.HTTPClientMock, WordStash.DataCase.StubHTTPClient)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 

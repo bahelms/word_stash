@@ -33,7 +33,8 @@ defmodule WordStashWeb.UserLive.SettingsTest do
         |> live(~p"/users/settings")
         |> follow_redirect(conn, ~p"/login")
 
-      assert conn.resp_body =~ "You must re-authenticate to access this page."
+      assert conn.resp_body =~ "Log in"
+      assert conn.resp_body =~ "Don't have an account?"
     end
   end
 
@@ -55,8 +56,9 @@ defmodule WordStashWeb.UserLive.SettingsTest do
         })
         |> render_submit()
 
-      assert result =~ "A link to confirm your email"
+      assert result =~ "Change Email"
       assert Accounts.get_user_by_email(user.email)
+      refute Accounts.get_user_by_email(new_email)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
