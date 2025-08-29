@@ -12,7 +12,7 @@ defmodule WordStash.HTTPClient do
   """
   @impl true
   def get(url) do
-    case Req.get(url, timeout: 10_000, max_redirects: 5) do
+    case Req.get(url) do
       {:ok, %{status: status, body: body}} when status in 200..299 ->
         {:ok, body}
 
