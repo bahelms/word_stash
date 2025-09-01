@@ -42,7 +42,7 @@ defmodule WordStashWeb.ArticlesLive do
         </:actions>
       </.app_header>
 
-      <main class="p-4 sm:p-6 lg:p-8 mt-20 sm:mt-20 lg:mt-24">
+      <main class="p-4 sm:p-6 lg:p-8 mt-4 sm:mt-20 lg:mt-24">
         <div class="max-w-6xl mx-auto">
           <div class="text-center mb-8">
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content mb-4">
