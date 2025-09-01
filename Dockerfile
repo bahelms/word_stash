@@ -99,7 +99,7 @@ COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/word_stash ./
 
 COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
 COPY litestream.yml /etc/litestream.yml
-COPY scripts/run.sh /scripts/run.sh
+COPY scripts/run.sh bin/run.sh
 
 USER nobody
 
@@ -107,6 +107,6 @@ USER nobody
 # advised to add an init process such as tini via `apt-get install`
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
-CMD [ "/scripts/run.sh" ]
+CMD [ "/app/bin/run.sh" ]
 
 #CMD ["/app/bin/server"]
