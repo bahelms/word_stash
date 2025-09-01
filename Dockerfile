@@ -25,6 +25,11 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends build-essential git \
   && rm -rf /var/lib/apt/lists/*
 
+# Download the static build of Litestream directly into the path & make it executable.
+# This is done in the builder and copied as the chmod doubles the size.
+ADD https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz /tmp/litestream.tar.gz
+RUN tar -C /usr/local/bin -xzf /tmp/litestream.tar.gz
+
 # prepare build dir
 WORKDIR /app
 
@@ -70,6 +75,7 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE} AS final
 
+
 RUN apt-get update \
   && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses5 locales ca-certificates sqlite3 \
   && rm -rf /var/lib/apt/lists/*
@@ -91,11 +97,16 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/word_stash ./
 
+COPY --from=builder /usr/local/bin/litestream /usr/local/bin/litestream
+COPY litestream.yml /etc/litestream.yml
+COPY scripts/run.sh /scripts/run.sh
+
 USER nobody
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`
 # above and adding an entrypoint. See https://github.com/krallin/tini for details
 # ENTRYPOINT ["/tini", "--"]
+CMD [ "/scripts/run.sh" ]
 
-CMD ["/app/bin/server"]
+#CMD ["/app/bin/server"]

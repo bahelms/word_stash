@@ -11,6 +11,7 @@ kill_signal = 'SIGTERM'
 
 [env]
   DATABASE_PATH = '/mnt/name/name.db'
+  REPLICA_URL = 's3://word-stash-db-backup/name.db'
   PHX_HOST = 'word-stash.fly.dev'
   PORT = '8080'
   MIX_ENV = 'prod'
