@@ -46,14 +46,11 @@ defmodule WordStashWeb.ArticlesLive do
         <div class="max-w-6xl mx-auto">
           <div class="text-center mb-8">
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content mb-4">
-              Your Stashed Articles
+              The Stash
             </h1>
-            <p class="text-lg text-base-content/70">
-              All your bookmarked articles in one place
-            </p>
           </div>
 
-          <%= if @articles == [] do %>
+          <%= if Enum.empty?(@articles) do %>
             <div class="text-center py-12">
               <div class="w-24 h-24 mx-auto mb-4 text-base-content/30">
                 <.icon name="hero-book-open" class="w-full h-full" />
