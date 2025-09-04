@@ -1,0 +1,12 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+trafilatura==1.9.0
+sumy==0.11.0
+yake==0.4.8
+
+# For optional abstractive summarization:
+transformers==4.43.3
+torch==2.3.1+cpu
+huggingface_hub==0.24.5
+# torch cpu wheels come from pytorch's index; see Dockerfile for index-url
+
