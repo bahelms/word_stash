@@ -38,7 +38,7 @@ defmodule WordStashWeb.ArticlesLiveTest do
       {:ok, view, _html} = live(conn, ~p"/articles")
 
       html = render(view)
-      assert html =~ "Your Stashed Articles"
+      assert html =~ "The Stash"
       assert html =~ article.url
     end
 

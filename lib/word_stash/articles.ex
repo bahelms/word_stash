@@ -21,6 +21,8 @@ defmodule WordStash.Articles do
 
   """
   def create_article(attrs \\ %{}) do
+    attrs = preprocess_url_attrs(attrs)
+
     case %Article{}
          |> Article.changeset(attrs)
          |> Repo.insert() do
@@ -139,5 +141,76 @@ defmodule WordStash.Articles do
   def update_article_title(article_id, title) do
     article = get_article!(article_id)
     update_article(article, %{title: title})
+  end
+
+  @doc """
+  Preprocesses URL attributes to remove UTM parameters.
+
+  Removes query parameters that start with 'utm_' and cleans up
+  the URL by removing the '?' if no query parameters remain.
+
+  ## Examples
+
+      iex> preprocess_url_attrs(%{url: "https://example.com?utm_source=google&other=value"})
+      %{url: "https://example.com?other=value"}
+
+      iex> preprocess_url_attrs(%{url: "https://example.com?utm_source=google&utm_campaign=test"})
+      %{url: "https://example.com"}
+
+      iex> preprocess_url_attrs(%{url: "https://example.com"})
+      %{url: "https://example.com"}
+
+  """
+  def preprocess_url_attrs(attrs) do
+    case Map.get(attrs, :url) do
+      nil -> attrs
+      url -> Map.put(attrs, :url, preprocess_url(url))
+    end
+  end
+
+  @doc """
+  Preprocesses a single URL to remove UTM parameters.
+
+  ## Examples
+
+      iex> preprocess_url("https://example.com?utm_source=google&other=value")
+      "https://example.com?other=value"
+
+      iex> preprocess_url("https://example.com?utm_source=google&utm_campaign=test")
+      "https://example.com"
+
+      iex> preprocess_url("https://example.com")
+      "https://example.com"
+
+  """
+  def preprocess_url(url) when is_binary(url) do
+    case URI.parse(url) do
+      %URI{query: nil} ->
+        url
+
+      %URI{query: query} = uri ->
+        filtered_params = filter_utm_params(query)
+        rebuild_url_with_query(uri, filtered_params)
+
+      _ ->
+        url
+    end
+  end
+
+  defp filter_utm_params(query) when is_binary(query) do
+    query
+    |> URI.decode_query()
+    |> Enum.reject(fn {key, _value} -> String.starts_with?(key, "utm_") end)
+  end
+
+  defp rebuild_url_with_query(uri, []) do
+    base_url = %{uri | query: nil}
+    URI.to_string(base_url)
+  end
+
+  defp rebuild_url_with_query(uri, params) do
+    query_string = URI.encode_query(params)
+    updated_uri = %{uri | query: query_string}
+    URI.to_string(updated_uri)
   end
 end

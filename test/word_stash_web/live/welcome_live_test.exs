@@ -181,4 +181,85 @@ defmodule WordStashWeb.WelcomeLiveTest do
       assert {:ok, _view, _html} = live(conn, ~p"/")
     end
   end
+
+  describe "URL preprocessing" do
+    test "removes utm_ parameters when stashing URL", %{view: view, user: user} do
+      url_with_utm = "https://example.com/article?utm_source=google&other=value"
+
+      view
+      |> form("#stash-form", %{url: url_with_utm})
+      |> render_submit()
+
+      # Check that article was created with UTM parameters removed
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == "https://example.com/article?other=value"
+    end
+
+    test "removes utm_ parameters and cleans up empty query string", %{view: view, user: user} do
+      url_with_only_utm = "https://example.com/article?utm_source=google&utm_campaign=test"
+
+      view
+      |> form("#stash-form", %{url: url_with_only_utm})
+      |> render_submit()
+
+      # Check that article was created with clean URL
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == "https://example.com/article"
+    end
+
+    test "preserves non-utm parameters", %{view: view, user: user} do
+      url_with_non_utm = "https://example.com/article?param1=value1&param2=value2"
+
+      view
+      |> form("#stash-form", %{url: url_with_non_utm})
+      |> render_submit()
+
+      # Check that article was created with all parameters preserved
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == url_with_non_utm
+    end
+
+    test "handles URLs with fragments and utm_ parameters", %{view: view, user: user} do
+      url_with_fragment_and_utm = "https://example.com/article?utm_source=google#section"
+
+      view
+      |> form("#stash-form", %{url: url_with_fragment_and_utm})
+      |> render_submit()
+
+      # Check that article was created with UTM removed but fragment preserved
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == "https://example.com/article#section"
+    end
+
+    test "handles multiple utm_ parameters", %{view: view, user: user} do
+      url_with_multiple_utm =
+        "https://example.com/article?utm_source=google&utm_campaign=test&utm_medium=email&other=value"
+
+      view
+      |> form("#stash-form", %{url: url_with_multiple_utm})
+      |> render_submit()
+
+      # Check that all utm_ parameters were removed
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == "https://example.com/article?other=value"
+    end
+
+    test "leaves URLs without query parameters unchanged", %{view: view, user: user} do
+      url_without_query = "https://example.com/article"
+
+      view
+      |> form("#stash-form", %{url: url_without_query})
+      |> render_submit()
+
+      # Check that URL was preserved as-is
+      articles = Articles.list_user_articles(user.id)
+      assert length(articles) == 1
+      assert hd(articles).url == url_without_query
+    end
+  end
 end

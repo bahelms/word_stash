@@ -4,7 +4,6 @@ defmodule WordStash.BackgroundJobsTest do
 
   setup do
     user = WordStash.AccountsFixtures.user_fixture()
-
     %{user: user}
   end
 
@@ -32,7 +31,8 @@ defmodule WordStash.BackgroundJobsTest do
       }
 
       {:ok, article} = Articles.create_article(article_attrs)
-      assert_receive {:DOWN, _ref, :process, _pid, :normal}
+
+      # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       assert updated_article.title == "Test Article Title"
     end
@@ -53,7 +53,8 @@ defmodule WordStash.BackgroundJobsTest do
       }
 
       {:ok, article} = Articles.create_article(article_attrs)
-      assert_receive {:DOWN, _ref, :process, _pid, :normal}
+
+      # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       refute updated_article.title
     end
@@ -85,7 +86,8 @@ defmodule WordStash.BackgroundJobsTest do
       }
 
       {:ok, article} = Articles.create_article(article_attrs)
-      assert_receive {:DOWN, _ref, :process, _pid, :normal}
+
+      # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       refute updated_article.title
     end

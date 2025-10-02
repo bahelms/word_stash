@@ -18,7 +18,7 @@ defmodule WordStash.DataCase do
     @behaviour WordStash.HTTPClientBehaviour
 
     def get(_url) do
-      {:ok, "Stub HTML"}
+      {:ok, "<html><head><title>Stub Title</title></head><body>Stub content</body></html>"}
     end
   end
 

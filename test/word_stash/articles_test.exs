@@ -59,6 +59,8 @@ defmodule WordStash.ArticlesTest do
 
     test "get_article!/1 returns the article with given id" do
       article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
       assert Articles.get_article!(article.id) == article
     end
 
@@ -67,12 +69,19 @@ defmodule WordStash.ArticlesTest do
       user2 = user_fixture()
       article1 = article_fixture(%{user_id: user1.id, url: "https://user1-article.com"})
       article2 = article_fixture(%{user_id: user2.id, url: "https://user2-article.com"})
+
+      # Reload articles to get updated titles from background jobs
+      article1 = Repo.reload!(article1)
+      article2 = Repo.reload!(article2)
+
       assert Articles.list_user_articles(user1.id) == [article1]
       assert Articles.list_user_articles(user2.id) == [article2]
     end
 
     test "update_article/2 with valid data updates the article" do
       article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
       assert {:ok, %Article{} = updated_article} = Articles.update_article(article, @update_attrs)
       assert updated_article.url == "https://updated-example.com"
       assert updated_article.title == "some updated title"
@@ -81,19 +90,133 @@ defmodule WordStash.ArticlesTest do
 
     test "update_article/2 with invalid data returns error changeset" do
       article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
       assert {:error, %Ecto.Changeset{}} = Articles.update_article(article, @invalid_attrs)
       assert article == Articles.get_article!(article.id)
     end
 
     test "delete_article/1 deletes the article" do
       article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
       assert {:ok, %Article{}} = Articles.delete_article(article)
       assert_raise Ecto.NoResultsError, fn -> Articles.get_article!(article.id) end
     end
 
     test "change_article/1 returns a article changeset" do
       article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
       assert %Ecto.Changeset{} = Articles.change_article(article)
+    end
+  end
+
+  describe "URL preprocessing" do
+    test "preprocess_url/1 removes utm_ parameters" do
+      url_with_utm = "https://example.com?utm_source=google&other=value"
+      expected = "https://example.com?other=value"
+      assert Articles.preprocess_url(url_with_utm) == expected
+    end
+
+    test "preprocess_url/1 removes utm_ parameters and cleans up empty query" do
+      url_with_only_utm = "https://example.com?utm_source=google"
+      expected = "https://example.com"
+      assert Articles.preprocess_url(url_with_only_utm) == expected
+    end
+
+    test "preprocess_url/1 leaves URLs without query parameters unchanged" do
+      url_without_query = "https://example.com"
+      assert Articles.preprocess_url(url_without_query) == url_without_query
+    end
+
+    test "preprocess_url/1 leaves URLs with non-utm parameters unchanged" do
+      url_with_non_utm = "https://example.com?param1=value1&param2=value2"
+      assert Articles.preprocess_url(url_with_non_utm) == url_with_non_utm
+    end
+
+    test "preprocess_url/1 removes multiple utm_ parameters" do
+      url_with_multiple_utm =
+        "https://example.com?utm_source=google&utm_campaign=test&utm_medium=email&other=value"
+
+      expected = "https://example.com?other=value"
+      assert Articles.preprocess_url(url_with_multiple_utm) == expected
+    end
+
+    test "preprocess_url/1 handles URLs with fragments" do
+      url_with_fragment = "https://example.com?utm_source=google#section"
+      expected = "https://example.com#section"
+      assert Articles.preprocess_url(url_with_fragment) == expected
+    end
+
+    test "preprocess_url/1 handles complex query parameters" do
+      complex_url =
+        "https://example.com?utm_source=google&utm_campaign=test&other=value&utm_medium=social"
+
+      result = Articles.preprocess_url(complex_url)
+
+      # Parse the result to verify it contains the expected parameters
+      %URI{query: query} = URI.parse(result)
+      params = URI.decode_query(query)
+
+      # Should contain other, but not any utm_ parameters
+      assert Map.has_key?(params, "other")
+      refute Map.has_key?(params, "utm_source")
+      refute Map.has_key?(params, "utm_campaign")
+      refute Map.has_key?(params, "utm_medium")
+      assert params["other"] == "value"
+    end
+
+    test "preprocess_url/1 removes all utm_ variants" do
+      url_with_all_utm =
+        "https://example.com?utm_source=google&utm_campaign=test&utm_medium=email&utm_term=keyword&utm_content=ad&other=value"
+
+      result = Articles.preprocess_url(url_with_all_utm)
+
+      # Parse the result to verify only non-utm parameters remain
+      %URI{query: query} = URI.parse(result)
+      params = URI.decode_query(query)
+
+      assert Map.has_key?(params, "other")
+      assert params["other"] == "value"
+      assert map_size(params) == 1
+    end
+
+    test "preprocess_url_attrs/1 processes URL in attributes map" do
+      attrs = %{url: "https://example.com?utm_source=google", title: "Test"}
+      expected = %{url: "https://example.com", title: "Test"}
+      assert Articles.preprocess_url_attrs(attrs) == expected
+    end
+
+    test "preprocess_url_attrs/1 leaves attributes without URL unchanged" do
+      attrs = %{title: "Test", description: "Test description"}
+      assert Articles.preprocess_url_attrs(attrs) == attrs
+    end
+
+    test "create_article/1 automatically preprocesses URLs" do
+      user = user_fixture()
+      url_with_utm = "https://example.com?utm_source=google&other=value"
+
+      assert {:ok, %WordStash.Articles.Article{} = article} =
+               Articles.create_article(%{
+                 url: url_with_utm,
+                 user_id: user.id
+               })
+
+      assert article.url == "https://example.com?other=value"
+    end
+
+    test "create_article/1 removes utm_ parameters and cleans up empty query" do
+      user = user_fixture()
+      url_with_only_utm = "https://example.com?utm_source=google&utm_campaign=test"
+
+      assert {:ok, %WordStash.Articles.Article{} = article} =
+               Articles.create_article(%{
+                 url: url_with_only_utm,
+                 user_id: user.id
+               })
+
+      assert article.url == "https://example.com"
     end
   end
 end
