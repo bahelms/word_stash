@@ -112,6 +112,199 @@ defmodule WordStash.ArticlesTest do
     end
   end
 
+  describe "archived_at field" do
+    alias WordStash.Articles.Article
+
+    test "create_article/1 with archived_at creates article with archived timestamp" do
+      user = user_fixture()
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      assert {:ok, %Article{} = article} =
+               Articles.create_article(%{
+                 url: "https://example.com",
+                 title: "Test Article",
+                 user_id: user.id,
+                 archived_at: archived_time
+               })
+
+      assert article.archived_at == archived_time
+    end
+
+    test "create_article/1 without archived_at creates article with nil archived_at" do
+      user = user_fixture()
+
+      assert {:ok, %Article{} = article} =
+               Articles.create_article(%{
+                 url: "https://example.com",
+                 title: "Test Article",
+                 user_id: user.id
+               })
+
+      assert article.archived_at == nil
+    end
+
+    test "update_article/2 can set archived_at" do
+      article = article_fixture()
+      article = Repo.reload!(article)
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article(article, %{archived_at: archived_time})
+
+      assert updated_article.archived_at == archived_time
+    end
+
+    test "update_article/2 can clear archived_at" do
+      user = user_fixture()
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {:ok, article} =
+        Articles.create_article(%{
+          url: "https://example.com",
+          title: "Test Article",
+          user_id: user.id,
+          archived_at: archived_time
+        })
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article(article, %{archived_at: nil})
+
+      assert updated_article.archived_at == nil
+    end
+  end
+
+  describe "status field" do
+    alias WordStash.Articles.Article
+
+    test "create_article/1 defaults to pending status" do
+      user = user_fixture()
+
+      assert {:ok, %Article{} = article} =
+               Articles.create_article(%{
+                 url: "https://example.com",
+                 title: "Test Article",
+                 user_id: user.id
+               })
+
+      assert article.status == "pending"
+    end
+
+    test "create_article/1 with valid status values" do
+      user = user_fixture()
+
+      valid_statuses = ["pending", "pending_ai", "complete"]
+
+      for status <- valid_statuses do
+        assert {:ok, %Article{} = article} =
+                 Articles.create_article(%{
+                   url: "https://example#{:rand.uniform(1000)}.com",
+                   title: "Test Article",
+                   user_id: user.id,
+                   status: status
+                 })
+
+        assert article.status == status
+      end
+    end
+
+    test "create_article/1 with invalid status returns error changeset" do
+      user = user_fixture()
+
+      assert {:error, %Ecto.Changeset{errors: errors}} =
+               Articles.create_article(%{
+                 url: "https://example.com",
+                 title: "Test Article",
+                 user_id: user.id,
+                 status: "invalid_status"
+               })
+
+      assert {:status,
+              {"is invalid",
+               [validation: :inclusion, enum: ["pending", "pending_ai", "complete"]]}} in errors
+    end
+
+    test "update_article/2 can update status to valid values" do
+      article = article_fixture()
+      article = Repo.reload!(article)
+
+      valid_statuses = ["pending", "pending_ai", "complete"]
+
+      for status <- valid_statuses do
+        assert {:ok, %Article{} = updated_article} =
+                 Articles.update_article(article, %{status: status})
+
+        assert updated_article.status == status
+      end
+    end
+
+    test "update_article/2 with invalid status returns error changeset" do
+      article = article_fixture()
+      article = Repo.reload!(article)
+
+      assert {:error, %Ecto.Changeset{errors: errors}} =
+               Articles.update_article(article, %{status: "invalid_status"})
+
+      assert {:status,
+              {"is invalid",
+               [validation: :inclusion, enum: ["pending", "pending_ai", "complete"]]}} in errors
+    end
+  end
+
+  describe "archived_at and status field combinations" do
+    alias WordStash.Articles.Article
+
+    test "create_article/1 with both archived_at and status" do
+      user = user_fixture()
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      assert {:ok, %Article{} = article} =
+               Articles.create_article(%{
+                 url: "https://example.com",
+                 title: "Test Article",
+                 user_id: user.id,
+                 archived_at: archived_time,
+                 status: "complete"
+               })
+
+      assert article.archived_at == archived_time
+      assert article.status == "complete"
+    end
+
+    test "update_article/2 can update both archived_at and status together" do
+      article = article_fixture()
+      article = Repo.reload!(article)
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article(article, %{
+                 archived_at: archived_time,
+                 status: "pending_ai"
+               })
+
+      assert updated_article.archived_at == archived_time
+      assert updated_article.status == "pending_ai"
+    end
+
+    test "article_fixture/1 creates article with default status" do
+      article = article_fixture()
+      assert article.status == "pending"
+      assert article.archived_at == nil
+    end
+
+    test "article_fixture/1 can override status and archived_at" do
+      archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      article =
+        article_fixture(%{
+          status: "complete",
+          archived_at: archived_time
+        })
+
+      assert article.status == "complete"
+      assert article.archived_at == archived_time
+    end
+  end
+
   describe "URL preprocessing" do
     test "preprocess_url/1 removes utm_ parameters" do
       url_with_utm = "https://example.com?utm_source=google&other=value"

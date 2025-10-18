@@ -6,8 +6,6 @@ Save your articles for later! (without worrying about them being deleted)
 (also LLM enhanced!)
 
 ## Dev TODO
-- add archived_at field
-- add status field enum: pending, pending_ai, complete
 - Add Oban
 - After submitting url, redirect to show page
     - Background job starts for processing
