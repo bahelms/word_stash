@@ -39,3 +39,5 @@ config :phoenix_live_view,
 # Configure Mox for mocking in tests
 config :word_stash,
   http_client: WordStash.HTTPClientMock
+
+config :word_stash, Oban, testing: :manual

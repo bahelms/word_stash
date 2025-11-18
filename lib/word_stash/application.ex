@@ -15,6 +15,7 @@ defmodule WordStash.Application do
       {DNSCluster, query: Application.get_env(:word_stash, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: WordStash.PubSub},
       {Task.Supervisor, name: WordStash.BackgroundJobs.TaskSupervisor},
+      {Oban, Application.fetch_env!(:word_stash, Oban)},
       # Start a worker by calling: WordStash.Worker.start_link(arg)
       # {WordStash.Worker, arg},
       # Start to serve requests, typically the last entry

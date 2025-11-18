@@ -24,6 +24,11 @@ config :word_stash,
   ecto_repos: [WordStash.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :word_stash, Oban,
+  engine: Oban.Engines.Lite,
+  queues: [default: 10],
+  repo: WordStash.Repo
+
 # Configures the endpoint
 config :word_stash, WordStashWeb.Endpoint,
   url: [host: "localhost"],
