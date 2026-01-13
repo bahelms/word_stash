@@ -47,6 +47,7 @@ defmodule WordStashWeb.Router do
       on_mount: [{WordStashWeb.UserAuth, :require_authenticated}] do
       live "/", WelcomeLive
       live "/articles", ArticlesLive
+      live "/articles/:id", Live.Articles.Show
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

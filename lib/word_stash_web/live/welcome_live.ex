@@ -11,11 +11,10 @@ defmodule WordStashWeb.WelcomeLive do
            url: url,
            user_id: socket.assigns.current_scope.user.id
          }) do
-      {:ok, _article} ->
+      {:ok, article} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Article stashed successfully!")
-         |> assign(url: "")}
+         |> push_navigate(to: "/articles/#{article.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         error_message =
@@ -74,16 +73,16 @@ defmodule WordStashWeb.WelcomeLive do
           </.link>
         </:actions>
       </.app_header>
-      
+
     <!-- Flash Messages (Error Only) -->
       <.flash kind={:error} flash={@flash} />
-      
+
     <!-- Main Content -->
       <main class="flex items-center justify-center p-4 sm:p-6 lg:p-8 flex-1 mt-20 sm:mt-20 lg:mt-24">
         <div class="w-full max-w-2xl">
           <div class="card bg-base-100 shadow-2xl border border-base-300 overflow-hidden backdrop-blur-sm">
             <div class="card-body p-6 sm:p-8 lg:p-12">
-              
+
     <!-- URL Stash Form -->
               <div class="max-w-lg mx-auto">
                 <.form

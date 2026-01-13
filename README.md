@@ -6,10 +6,8 @@ Save your articles for later! (without worrying about them being deleted)
 (also LLM enhanced!)
 
 ## Dev TODO
-- Add Oban
-- After submitting url, redirect to show page
-    - Background job starts for processing
-- Add Read, Archive, and Delete buttons
 - Click article card on index page -> show article
+- Add Read, Archive, and Delete buttons
+- Background job starts for processing
 - Article processing: generate tags, summary, author, published_at
 - Host LLM

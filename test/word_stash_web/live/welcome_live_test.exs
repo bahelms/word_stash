@@ -53,16 +53,20 @@ defmodule WordStashWeb.WelcomeLiveTest do
       assert hd(articles).user_id == user.id
     end
 
-    test "clears form after successful stash", %{view: view} do
+    test "redirects to article page after successful stash", %{view: view, conn: conn, user: user} do
       url = "https://example.com/article"
 
       view
       |> form("#stash-form", %{url: url})
       |> render_submit()
 
-      # Form should be cleared
-      assert render(view) =~ "placeholder=\"URL\""
-      assert render(view) =~ "value=\"\""
+      # Should redirect to article show page
+      article = Articles.list_user_articles(user.id) |> hd()
+
+      {:ok, _article_live, article_html} =
+        live(conn, "/articles/#{article.id}")
+
+      assert article_html =~ article.url
     end
 
     test "shows error for invalid URL format", %{view: view} do
@@ -77,13 +81,18 @@ defmodule WordStashWeb.WelcomeLiveTest do
       assert has_element?(view, ".alert-error", "Invalid URL")
     end
 
-    test "shows error for duplicate URL", %{view: view, user: _user} do
+    test "shows error for duplicate URL", %{conn: conn, user: _user} do
       url = "https://example.com/article"
 
-      # First stash should succeed
+      # First stash should succeed and redirect
+      {:ok, view, _html} = live(conn, ~p"/")
+
       view
       |> form("#stash-form", %{url: url})
       |> render_submit()
+
+      # Navigate back to welcome page for second attempt
+      {:ok, view, _html} = live(conn, ~p"/")
 
       # Second stash of same URL should fail
       view
