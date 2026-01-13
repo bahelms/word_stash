@@ -125,35 +125,6 @@ defmodule WordStashWeb.Live.Articles.Show do
                     </p>
                   </div>
                 <% end %>
-
-                <div>
-                  <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
-                    Created
-                  </label>
-                  <p class="text-base-content">
-                    {Calendar.strftime(@article.inserted_at, "%B %d, %Y at %I:%M %p")}
-                  </p>
-                </div>
-
-                <%= if @article.updated_at != @article.inserted_at do %>
-                  <div>
-                    <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
-                      Last Updated
-                    </label>
-                    <p class="text-base-content">
-                      {Calendar.strftime(@article.updated_at, "%B %d, %Y at %I:%M %p")}
-                    </p>
-                  </div>
-                <% end %>
-              </div>
-
-              <div class="card-actions justify-end mt-8">
-                <.link
-                  navigate="/articles"
-                  class="btn btn-primary btn-outline"
-                >
-                  <.icon name="hero-arrow-left" class="w-4 h-4 mr-2" /> Back to Articles
-                </.link>
               </div>
             </div>
           </div>

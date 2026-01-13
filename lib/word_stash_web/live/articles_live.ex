@@ -79,17 +79,20 @@ defmodule WordStashWeb.ArticlesLive do
                     </div>
 
                     <h3 class="card-title text-lg mb-2 line-clamp-2">
-                      <%= if article.title && article.title != "" do %>
-                        {article.title}
-                      <% else %>
-                        <span class="text-base-content/70 italic">Untitled Article</span>
-                      <% end %>
+                      <.link
+                        navigate={"/articles/#{article.id}"}
+                        class="text-base-content/70 mb-4 line-clamp-3 hover:text-primary cursor-pointer"
+                      >
+                        <%= if article.title && article.title != "" do %>
+                          {article.title}
+                        <% else %>
+                          <span class="text-base-content/70 italic">Untitled Article</span>
+                        <% end %>
+                      </.link>
                     </h3>
 
                     <%= if article.description && article.description != "" do %>
-                      <p class="text-base-content/70 mb-4 line-clamp-3">
                         {article.description}
-                      </p>
                     <% end %>
 
                     <div class="card-actions justify-end">
