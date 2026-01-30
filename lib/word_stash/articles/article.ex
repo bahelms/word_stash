@@ -7,6 +7,7 @@ defmodule WordStash.Articles.Article do
     field :title, :string
     field :description, :string
     field :archived_at, :utc_datetime
+    field :last_read_at, :utc_datetime
     field :status, :string, default: "pending"
     belongs_to :user, WordStash.Accounts.User
 
@@ -16,7 +17,7 @@ defmodule WordStash.Articles.Article do
   @doc false
   def changeset(article, attrs) do
     article
-    |> cast(attrs, [:url, :title, :description, :user_id, :archived_at, :status])
+    |> cast(attrs, [:url, :title, :description, :user_id, :archived_at, :last_read_at, :status])
     |> validate_required([:url])
     |> validate_format(:url, ~r/^https?:\/\//,
       message: "must be a valid URL starting with http:// or https://"

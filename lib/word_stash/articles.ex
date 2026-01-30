@@ -130,6 +130,19 @@ defmodule WordStash.Articles do
   end
 
   @doc """
+  Sets the article's last_read_at to the current time.
+
+  ## Examples
+
+      iex> touch_article_last_read_at(article)
+      {:ok, %Article{}}
+
+  """
+  def touch_article_last_read_at(%Article{} = article) do
+    update_article(article, %{last_read_at: DateTime.utc_now()})
+  end
+
+  @doc """
   Updates just the title of an article.
 
   ## Examples

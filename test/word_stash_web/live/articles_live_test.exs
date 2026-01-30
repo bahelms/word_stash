@@ -29,17 +29,15 @@ defmodule WordStashWeb.ArticlesLiveTest do
     end
 
     test "lists articles when user is logged in", %{conn: conn, user: user} do
-      # Create an article for this user
       article = article_fixture(%{user_id: user.id})
 
-      # Create a new connection and view to show the new article
       scope = WordStash.Accounts.Scope.for_user(user)
       conn = conn |> log_in_user(user) |> assign(:current_scope, scope)
       {:ok, view, _html} = live(conn, ~p"/articles")
 
       html = render(view)
       assert html =~ "The Stash"
-      assert html =~ article.url
+      assert has_element?(view, "#article-visit-#{article.id}")
     end
 
     test "displays navigation links correctly", %{view: view} do
@@ -48,6 +46,23 @@ defmodule WordStashWeb.ArticlesLiveTest do
       assert html =~ "Home"
       assert html =~ "Settings"
       assert html =~ "Logout"
+    end
+
+    test "clicking Visit updates article last_read_at", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      assert article.last_read_at == nil
+
+      scope = WordStash.Accounts.Scope.for_user(user)
+      conn = conn |> log_in_user(user) |> assign(:current_scope, scope)
+      {:ok, view, _html} = live(conn, ~p"/articles")
+
+      view
+      |> element("#article-visit-#{article.id}")
+      |> render_click()
+
+      updated = WordStash.Articles.get_article!(article.id)
+      assert updated.last_read_at != nil
+      assert DateTime.diff(DateTime.utc_now(), updated.last_read_at, :second) < 2
     end
   end
 end

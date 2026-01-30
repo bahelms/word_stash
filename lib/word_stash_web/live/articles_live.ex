@@ -7,9 +7,19 @@ defmodule WordStashWeb.ArticlesLive do
     {:ok, assign(socket, articles: articles)}
   end
 
+  def handle_event("visit", %{"id" => id}, socket) do
+    article = Articles.get_article!(id)
+    Articles.touch_article_last_read_at(article)
+    {:noreply, push_event(socket, "open_url", %{url: article.url})}
+  end
+
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300">
+    <div
+      id="articles-live-root"
+      class="min-h-screen bg-gradient-to-br from-base-100 via-base-200 to-base-300"
+      phx-hook="OpenUrl"
+    >
       <.app_header>
         <:actions>
           <.link
@@ -92,18 +102,19 @@ defmodule WordStashWeb.ArticlesLive do
                     </h3>
 
                     <%= if article.description && article.description != "" do %>
-                        {article.description}
+                      {article.description}
                     <% end %>
 
                     <div class="card-actions justify-end">
-                      <.link
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        phx-click="visit"
+                        phx-value-id={article.id}
                         class="btn btn-primary btn-sm"
+                        id={"article-visit-#{article.id}"}
                       >
                         <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" /> Visit
-                      </.link>
+                      </button>
                     </div>
                   </div>
                 </div>

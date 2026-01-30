@@ -305,6 +305,17 @@ defmodule WordStash.ArticlesTest do
     end
   end
 
+  describe "last_read_at field" do
+    test "touch_article_last_read_at/1 sets last_read_at to current time" do
+      article = article_fixture()
+      assert article.last_read_at == nil
+
+      assert {:ok, updated} = Articles.touch_article_last_read_at(article)
+      assert updated.last_read_at != nil
+      assert DateTime.diff(DateTime.utc_now(), updated.last_read_at, :second) < 2
+    end
+  end
+
   describe "URL preprocessing" do
     test "preprocess_url/1 removes utm_ parameters" do
       url_with_utm = "https://example.com?utm_source=google&other=value"

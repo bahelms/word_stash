@@ -25,11 +25,39 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/word_stash"
 import topbar from "../vendor/topbar"
 
+const OpenUrlHook = {
+  mounted() {
+    this.handleEvent("open_url", ({url}) => {
+      if (url) window.open(url, "_blank", "noopener,noreferrer")
+    })
+  }
+}
+
+function formatUtcToLocal(isoString) {
+  const date = new Date(isoString)
+  return date.toLocaleString(undefined, { dateStyle: "long", timeStyle: "short" })
+}
+
+const LocalTimeHook = {
+  mounted() {
+    this.formatLocalTimes()
+  },
+  updated() {
+    this.formatLocalTimes()
+  },
+  formatLocalTimes() {
+    this.el.querySelectorAll("[data-utc-datetime]").forEach((el) => {
+      const utc = el.getAttribute("data-utc-datetime")
+      if (utc) el.textContent = formatUtcToLocal(utc)
+    })
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, OpenUrl: OpenUrlHook, LocalTime: LocalTimeHook},
 })
 
 // Show progress bar on live navigation and form submits

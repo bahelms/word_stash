@@ -1,0 +1,56 @@
+defmodule WordStashWeb.ArticlesShowTest do
+  use WordStashWeb.ConnCase
+
+  import Phoenix.LiveViewTest
+  import WordStash.AccountsFixtures
+  import WordStash.ArticlesFixtures
+
+  setup %{conn: conn} do
+    user = user_fixture()
+    scope = WordStash.Accounts.Scope.for_user(user)
+
+    conn =
+      conn
+      |> log_in_user(user)
+      |> assign(:current_scope, scope)
+
+    %{conn: conn, user: user, scope: scope}
+  end
+
+  describe "Show" do
+    test "displays article", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      assert has_element?(view, "#article-visit-button")
+      assert render(view) =~ article.url
+    end
+
+    test "clicking Visit updates article last_read_at", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      assert article.last_read_at == nil
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view
+      |> element("#article-visit-button")
+      |> render_click()
+
+      updated = WordStash.Articles.get_article!(article.id)
+      assert updated.last_read_at != nil
+      assert DateTime.diff(DateTime.utc_now(), updated.last_read_at, :second) < 2
+    end
+
+    test "displays last_read_at when set", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, updated} = WordStash.Articles.touch_article_last_read_at(article)
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      html = render(view)
+      assert html =~ "Last read"
+      assert html =~ Calendar.strftime(updated.last_read_at, "%B %d, %Y at %I:%M %p")
+    end
+  end
+end
