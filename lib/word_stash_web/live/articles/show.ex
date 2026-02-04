@@ -11,6 +11,13 @@ defmodule WordStashWeb.Live.Articles.Show do
     {:ok, assign(socket, article: article)}
   end
 
+  def handle_event("archive", _params, socket) do
+    case Articles.archive_article(socket.assigns.article) do
+      {:ok, updated} -> {:noreply, assign(socket, :article, updated)}
+      {:error, _} -> {:noreply, socket}
+    end
+  end
+
   def handle_event("visit", _params, socket) do
     case Articles.touch_article_last_read_at(socket.assigns.article) do
       {:ok, updated} ->
@@ -135,6 +142,16 @@ defmodule WordStashWeb.Live.Articles.Show do
                     >
                       <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" /> Visit
                     </button>
+                    <%= if @article.archived_at == nil do %>
+                      <button
+                        type="button"
+                        phx-click="archive"
+                        class="btn btn-warning btn-sm flex-shrink-0"
+                        id="article-archive-button"
+                      >
+                        <.icon name="hero-archive-box-arrow-down" class="w-4 h-4 mr-1" /> Archive
+                      </button>
+                    <% end %>
                   </div>
                 </div>
 

@@ -78,6 +78,7 @@ defmodule WordStash.Articles do
   """
   def list_articles do
     Article
+    |> where([a], is_nil(a.archived_at))
     |> order_by([a], desc: a.inserted_at)
     |> Repo.all()
   end
@@ -140,6 +141,19 @@ defmodule WordStash.Articles do
   """
   def touch_article_last_read_at(%Article{} = article) do
     update_article(article, %{last_read_at: DateTime.utc_now()})
+  end
+
+  @doc """
+  Archives an article by setting archived_at to the current time.
+
+  ## Examples
+
+      iex> archive_article(article)
+      {:ok, %Article{}}
+
+  """
+  def archive_article(%Article{} = article) do
+    update_article(article, %{archived_at: DateTime.utc_now()})
   end
 
   @doc """

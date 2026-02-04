@@ -39,6 +39,14 @@ defmodule WordStash.ArticlesTest do
       assert Enum.any?(articles, fn a -> a.url == article2.url end)
     end
 
+    test "list_articles/0 excludes archived articles" do
+      _archived = article_fixture(%{url: "https://archived.com", archived_at: DateTime.utc_now()})
+      active = article_fixture(%{url: "https://active.com"})
+      articles = Articles.list_articles()
+      assert length(articles) == 1
+      assert Enum.any?(articles, fn a -> a.url == active.url end)
+    end
+
     test "create_article/1 with valid data creates a article" do
       user = user_fixture()
 
@@ -302,6 +310,16 @@ defmodule WordStash.ArticlesTest do
 
       assert article.status == "complete"
       assert article.archived_at == archived_time
+    end
+  end
+
+  describe "archive_article/1" do
+    test "sets archived_at to current time" do
+      article = article_fixture()
+      assert article.archived_at == nil
+
+      assert {:ok, updated} = Articles.archive_article(article)
+      assert updated.archived_at != nil
     end
   end
 

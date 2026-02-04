@@ -42,6 +42,39 @@ defmodule WordStashWeb.ArticlesShowTest do
       assert DateTime.diff(DateTime.utc_now(), updated.last_read_at, :second) < 2
     end
 
+    test "displays archive button for unarchived article", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+      assert has_element?(view, "#article-archive-button")
+    end
+
+    test "clicking Archive sets archived_at and hides the button", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      assert article.archived_at == nil
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view
+      |> element("#article-archive-button")
+      |> render_click()
+
+      updated = WordStash.Articles.get_article!(article.id)
+      assert updated.archived_at != nil
+
+      refute has_element?(view, "#article-archive-button")
+      assert render(view) =~ "Archived"
+    end
+
+    test "does not display archive button for already archived article", %{
+      conn: conn,
+      user: user
+    } do
+      article = article_fixture(%{user_id: user.id, archived_at: DateTime.utc_now()})
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+      refute has_element?(view, "#article-archive-button")
+      assert render(view) =~ "Archived"
+    end
+
     test "displays last_read_at when set", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       {:ok, updated} = WordStash.Articles.touch_article_last_read_at(article)

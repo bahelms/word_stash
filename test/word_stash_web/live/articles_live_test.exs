@@ -48,6 +48,18 @@ defmodule WordStashWeb.ArticlesLiveTest do
       assert html =~ "Logout"
     end
 
+    test "does not display archived articles", %{conn: conn, user: user} do
+      active = article_fixture(%{user_id: user.id, url: "https://active.com"})
+      archived = article_fixture(%{user_id: user.id, url: "https://archived.com", archived_at: DateTime.utc_now()})
+
+      scope = WordStash.Accounts.Scope.for_user(user)
+      conn = conn |> log_in_user(user) |> assign(:current_scope, scope)
+      {:ok, view, _html} = live(conn, ~p"/articles")
+
+      assert has_element?(view, "#article-visit-#{active.id}")
+      refute has_element?(view, "#article-visit-#{archived.id}")
+    end
+
     test "clicking Visit updates article last_read_at", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       assert article.last_read_at == nil
