@@ -3,6 +3,7 @@ defmodule WordStashWeb.Live.Articles.Show do
   alias WordStash.Articles
 
   defp utc_to_iso8601(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+
   defp utc_to_iso8601(%NaiveDateTime{} = ndt),
     do: NaiveDateTime.to_iso8601(ndt) |> String.replace(" ", "T") |> Kernel.<>("Z")
 
@@ -16,6 +17,11 @@ defmodule WordStashWeb.Live.Articles.Show do
       {:ok, updated} -> {:noreply, assign(socket, :article, updated)}
       {:error, _} -> {:noreply, socket}
     end
+  end
+
+  def handle_event("delete", _params, socket) do
+    Articles.delete_article(socket.assigns.article)
+    {:noreply, push_navigate(socket, to: "/articles")}
   end
 
   def handle_event("visit", _params, socket) do
@@ -89,7 +95,10 @@ defmodule WordStashWeb.Live.Articles.Show do
                   </div>
                   <div>
                     <div class="text-sm text-base-content/60 mb-1">
-                      Stashed on <span data-utc-datetime={utc_to_iso8601(@article.inserted_at)}>{Calendar.strftime(@article.inserted_at, "%B %d, %Y at %I:%M %p")}</span>
+                      Stashed on
+                      <span data-utc-datetime={utc_to_iso8601(@article.inserted_at)}>
+                        {Calendar.strftime(@article.inserted_at, "%B %d, %Y at %I:%M %p")}
+                      </span>
                     </div>
                     <%= if @article.status do %>
                       <div class="badge badge-outline badge-sm">
@@ -152,6 +161,15 @@ defmodule WordStashWeb.Live.Articles.Show do
                         <.icon name="hero-archive-box-arrow-down" class="w-4 h-4 mr-1" /> Archive
                       </button>
                     <% end %>
+                    <button
+                      type="button"
+                      phx-click="delete"
+                      phx-confirm="Are you sure you want to delete this article? This cannot be undone."
+                      class="btn btn-error btn-sm flex-shrink-0"
+                      id="article-delete-button"
+                    >
+                      <.icon name="hero-trash" class="w-4 h-4 mr-1" /> Delete
+                    </button>
                   </div>
                 </div>
 
@@ -161,7 +179,9 @@ defmodule WordStashWeb.Live.Articles.Show do
                       Archived
                     </label>
                     <p class="text-base-content">
-                      <span data-utc-datetime={utc_to_iso8601(@article.archived_at)}>{Calendar.strftime(@article.archived_at, "%B %d, %Y at %I:%M %p")}</span>
+                      <span data-utc-datetime={utc_to_iso8601(@article.archived_at)}>
+                        {Calendar.strftime(@article.archived_at, "%B %d, %Y at %I:%M %p")}
+                      </span>
                     </p>
                   </div>
                 <% end %>
@@ -172,7 +192,9 @@ defmodule WordStashWeb.Live.Articles.Show do
                       Last read
                     </label>
                     <p class="text-base-content">
-                      <span data-utc-datetime={utc_to_iso8601(@article.last_read_at)}>{Calendar.strftime(@article.last_read_at, "%B %d, %Y at %I:%M %p")}</span>
+                      <span data-utc-datetime={utc_to_iso8601(@article.last_read_at)}>
+                        {Calendar.strftime(@article.last_read_at, "%B %d, %Y at %I:%M %p")}
+                      </span>
                     </p>
                   </div>
                 <% end %>

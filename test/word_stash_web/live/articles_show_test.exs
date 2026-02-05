@@ -75,6 +75,22 @@ defmodule WordStashWeb.ArticlesShowTest do
       assert render(view) =~ "Archived"
     end
 
+    test "clicking Delete removes the article and redirects to articles", %{
+      conn: conn,
+      user: user
+    } do
+      article = article_fixture(%{user_id: user.id})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view
+      |> element("#article-delete-button")
+      |> render_click()
+
+      assert_redirected(view, ~p"/articles")
+      assert WordStash.Repo.get(WordStash.Articles.Article, article.id) == nil
+    end
+
     test "displays last_read_at when set", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       {:ok, updated} = WordStash.Articles.touch_article_last_read_at(article)

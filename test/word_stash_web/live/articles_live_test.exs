@@ -50,7 +50,13 @@ defmodule WordStashWeb.ArticlesLiveTest do
 
     test "does not display archived articles", %{conn: conn, user: user} do
       active = article_fixture(%{user_id: user.id, url: "https://active.com"})
-      archived = article_fixture(%{user_id: user.id, url: "https://archived.com", archived_at: DateTime.utc_now()})
+
+      archived =
+        article_fixture(%{
+          user_id: user.id,
+          url: "https://archived.com",
+          archived_at: DateTime.utc_now()
+        })
 
       scope = WordStash.Accounts.Scope.for_user(user)
       conn = conn |> log_in_user(user) |> assign(:current_scope, scope)
