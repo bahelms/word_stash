@@ -4,6 +4,7 @@ defmodule WordStash.LLMClient.Prompt do
   """
 
   @max_html_length 15_000
+  @removable_tags ~w(script style nav header footer aside iframe noscript svg)
 
   @doc """
   Builds the analysis prompt for an article.
@@ -11,7 +12,10 @@ defmodule WordStash.LLMClient.Prompt do
   Returns a string with the system and user prompts combined.
   """
   def build_analysis_prompt(html, url) do
-    truncated_html = truncate_html(html)
+    truncated_html =
+      html
+      |> clean_html()
+      |> truncate_html()
 
     """
     You are an article analysis assistant. Analyze the following HTML content and extract structured information.
@@ -42,6 +46,53 @@ defmodule WordStash.LLMClient.Prompt do
 
     Respond with ONLY the JSON object, no additional text.
     """
+  end
+
+  @doc """
+  Cleans HTML by removing tags that don't contribute to article analysis.
+
+  Removes:
+  - Scripts and styles (JavaScript/CSS code)
+  - Navigation, headers, footers, sidebars (site structure)
+  - Iframes, noscript tags (embedded/fallback content)
+  - HTML comments
+  - SVG graphics (often large, not useful for text analysis)
+
+  Keeps:
+  - Article content tags (article, main, section, div, p)
+  - Headings (h1-h6)
+  - Metadata tags (meta, title, time)
+  - Text formatting (strong, em, span, a)
+  """
+  def clean_html(html) when is_binary(html) do
+    html
+    |> remove_tags(@removable_tags)
+    |> remove_comments()
+    |> collapse_whitespace()
+  end
+
+  def clean_html(_), do: ""
+
+  defp remove_tags(html, tags) do
+    Enum.reduce(tags, html, &remove_tag_and_content(&2, &1))
+  end
+
+  # Remove a tag and all its content
+  defp remove_tag_and_content(html, tag) do
+    # Match opening tag, content, and closing tag (case-insensitive, multiline, non-greedy)
+    Regex.replace(~r/<#{tag}[^>]*>.*?<\/#{tag}>/is, html, "")
+  end
+
+  # Remove HTML comments
+  defp remove_comments(html) do
+    Regex.replace(~r/<!--.*?-->/s, html, "")
+  end
+
+  # Collapse multiple whitespace/newlines into single spaces
+  defp collapse_whitespace(html) do
+    html
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 
   @doc """
