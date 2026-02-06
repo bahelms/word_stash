@@ -22,6 +22,22 @@ defmodule WordStash.DataCase do
     end
   end
 
+  defmodule StubLLMClient do
+    @behaviour WordStash.LLMClientBehaviour
+
+    def analyze_article(_html, _url) do
+      {:ok,
+       %{
+         title: "Test Article",
+         author: "Test Author",
+         summary: "This is a test article summary.",
+         tags: "test,article,stub",
+         published_at: ~U[2024-01-01 12:00:00Z],
+         reading_time_minutes: 5
+       }}
+    end
+  end
+
   use ExUnit.CaseTemplate
 
   using do
@@ -41,6 +57,7 @@ defmodule WordStash.DataCase do
   setup tags do
     WordStash.DataCase.setup_sandbox(tags)
     Mox.stub_with(WordStash.HTTPClientMock, WordStash.DataCase.StubHTTPClient)
+    Mox.stub_with(WordStash.LLMClientMock, WordStash.DataCase.StubLLMClient)
     :ok
   end
 

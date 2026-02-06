@@ -83,3 +83,6 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Use Ollama for LLM client in development
+config :word_stash, :llm_client, WordStash.LLMClient.Ollama

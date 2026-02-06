@@ -29,6 +29,12 @@ config :word_stash, Oban,
   queues: [default: 10],
   repo: WordStash.Repo
 
+# Configures LLM client
+config :word_stash,
+  ollama_endpoint: "http://localhost:11434",
+  ollama_model: "llama3.2",
+  groq_model: "llama-3.3-70b-versatile"
+
 # Configures the endpoint
 config :word_stash, WordStashWeb.Endpoint,
   url: [host: "localhost"],

@@ -24,8 +24,13 @@ defmodule WordStash.BackgroundJobs do
 
   defp fetch_article_title_sync(article_id, url, http_client) do
     with {:get, {:ok, html}} <- {:get, http_client.get(url)},
-         {:parse, {:ok, title}} <- {:parse, HTMLParser.extract_title(html)} do
-      Articles.update_article_title(article_id, title)
+         {:parse, {:ok, title}} <- {:parse, HTMLParser.extract_title(html)},
+         {:ok, article} <- Articles.update_article_title(article_id, title),
+         {:ok, _article} <- Articles.update_article(article, %{status: "pending_ai"}) do
+      %{article_id: article_id, url: url}
+      |> WordStash.Workers.AnalyzeArticleWorker.enqueue()
+
+      :ok
     else
       {:get, {:error, reason}} when is_binary(reason) ->
         Logger.warning("Failed to fetch HTML for article #{article_id}: #{reason}")
@@ -33,6 +38,10 @@ defmodule WordStash.BackgroundJobs do
 
       {:parse, {:error, reason}} ->
         Logger.warning("Failed to parse title for article #{article_id}: #{reason}")
+        :ok
+
+      {:error, _changeset} ->
+        Logger.warning("Failed to update article #{article_id}")
         :ok
     end
   end

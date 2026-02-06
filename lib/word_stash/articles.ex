@@ -171,6 +171,45 @@ defmodule WordStash.Articles do
   end
 
   @doc """
+  Updates an article with AI analysis results.
+
+  ## Examples
+
+      iex> update_article_analysis(article_id, %{summary: "...", author: "..."})
+      {:ok, %Article{}}
+
+  """
+  def update_article_analysis(article_id, analysis_attrs) do
+    article = get_article!(article_id)
+
+    attrs =
+      analysis_attrs
+      |> Map.put(:ai_analyzed_at, DateTime.utc_now())
+      |> Map.put(:status, "complete")
+
+    article
+    |> Article.analysis_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Marks an article's AI analysis as failed with an error message.
+
+  ## Examples
+
+      iex> mark_article_analysis_failed(article_id, "API timeout")
+      {:ok, %Article{}}
+
+  """
+  def mark_article_analysis_failed(article_id, error_message) do
+    article = get_article!(article_id)
+
+    article
+    |> Article.analysis_failure_changeset(error_message)
+    |> Repo.update()
+  end
+
+  @doc """
   Preprocesses URL attributes to remove UTM parameters.
 
   Removes query parameters that start with 'utm_' and cleans up

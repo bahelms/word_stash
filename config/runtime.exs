@@ -106,4 +106,16 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # ## Configuring LLM client
+  groq_api_key =
+    System.get_env("GROQ_API_KEY") ||
+      raise """
+      environment variable GROQ_API_KEY is missing.
+      Get one from https://console.groq.com/keys
+      """
+
+  config :word_stash,
+    llm_client: WordStash.LLMClient.Groq,
+    groq_api_key: groq_api_key
 end

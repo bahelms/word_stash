@@ -1,6 +1,9 @@
 defmodule WordStash.BackgroundJobsTest do
   use WordStash.DataCase, async: false
+  use Oban.Testing, repo: WordStash.Repo
+
   alias WordStash.Articles
+  alias WordStash.Workers.AnalyzeArticleWorker
 
   setup do
     user = WordStash.AccountsFixtures.user_fixture()
@@ -35,6 +38,10 @@ defmodule WordStash.BackgroundJobsTest do
       # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       assert updated_article.title == "Test Article Title"
+      assert updated_article.status == "pending_ai"
+
+      # Verify AnalyzeArticleWorker job was enqueued
+      assert_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
     end
 
     test "handles HTTP errors gracefully", %{user: user} do
@@ -57,6 +64,10 @@ defmodule WordStash.BackgroundJobsTest do
       # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       refute updated_article.title
+      assert updated_article.status == "pending"
+
+      # Verify AnalyzeArticleWorker job was NOT enqueued on error
+      refute_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
     end
 
     test "handles HTML parsing errors gracefully", %{user: user} do
@@ -90,6 +101,10 @@ defmodule WordStash.BackgroundJobsTest do
       # In test mode, background jobs run synchronously, so no need to wait for DOWN message
       updated_article = Repo.reload!(article)
       refute updated_article.title
+      assert updated_article.status == "pending"
+
+      # Verify AnalyzeArticleWorker job was NOT enqueued on parsing error
+      refute_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
     end
   end
 end

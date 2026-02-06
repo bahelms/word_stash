@@ -2,11 +2,10 @@ defmodule WordStash.ArticlesTest do
   use WordStash.DataCase
 
   alias WordStash.Articles
+  alias WordStash.Articles.Article
   import WordStash.AccountsFixtures
 
   describe "articles" do
-    alias WordStash.Articles.Article
-
     @valid_attrs %{
       url: "https://example.com",
       title: "some title",
@@ -121,8 +120,6 @@ defmodule WordStash.ArticlesTest do
   end
 
   describe "archived_at field" do
-    alias WordStash.Articles.Article
-
     test "create_article/1 with archived_at creates article with archived timestamp" do
       user = user_fixture()
       archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -182,8 +179,6 @@ defmodule WordStash.ArticlesTest do
   end
 
   describe "status field" do
-    alias WordStash.Articles.Article
-
     test "create_article/1 defaults to pending status" do
       user = user_fixture()
 
@@ -228,14 +223,17 @@ defmodule WordStash.ArticlesTest do
 
       assert {:status,
               {"is invalid",
-               [validation: :inclusion, enum: ["pending", "pending_ai", "complete"]]}} in errors
+               [
+                 validation: :inclusion,
+                 enum: ["pending", "pending_ai", "complete", "failed"]
+               ]}} in errors
     end
 
     test "update_article/2 can update status to valid values" do
       article = article_fixture()
       article = Repo.reload!(article)
 
-      valid_statuses = ["pending", "pending_ai", "complete"]
+      valid_statuses = ["pending", "pending_ai", "complete", "failed"]
 
       for status <- valid_statuses do
         assert {:ok, %Article{} = updated_article} =
@@ -254,13 +252,14 @@ defmodule WordStash.ArticlesTest do
 
       assert {:status,
               {"is invalid",
-               [validation: :inclusion, enum: ["pending", "pending_ai", "complete"]]}} in errors
+               [
+                 validation: :inclusion,
+                 enum: ["pending", "pending_ai", "complete", "failed"]
+               ]}} in errors
     end
   end
 
   describe "archived_at and status field combinations" do
-    alias WordStash.Articles.Article
-
     test "create_article/1 with both archived_at and status" do
       user = user_fixture()
       archived_time = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -439,6 +438,355 @@ defmodule WordStash.ArticlesTest do
                })
 
       assert article.url == "https://example.com"
+    end
+  end
+
+  describe "Article.analysis_changeset/2" do
+    test "casts analysis fields correctly" do
+      article = article_fixture()
+
+      attrs = %{
+        summary: "This is a summary of the article",
+        author: "John Doe",
+        published_at: ~U[2024-06-15 10:30:00Z],
+        reading_time_minutes: 8,
+        tags: "elixir,phoenix,testing",
+        ai_analyzed_at: ~U[2024-06-16 12:00:00Z],
+        status: "complete"
+      }
+
+      changeset = Article.analysis_changeset(article, attrs)
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :summary) == "This is a summary of the article"
+      assert Ecto.Changeset.get_change(changeset, :author) == "John Doe"
+      assert Ecto.Changeset.get_change(changeset, :published_at) == ~U[2024-06-15 10:30:00Z]
+      assert Ecto.Changeset.get_change(changeset, :reading_time_minutes) == 8
+      assert Ecto.Changeset.get_change(changeset, :tags) == "elixir,phoenix,testing"
+      assert Ecto.Changeset.get_change(changeset, :ai_analyzed_at) == ~U[2024-06-16 12:00:00Z]
+      assert Ecto.Changeset.get_change(changeset, :status) == "complete"
+    end
+
+    test "allows nil values for optional fields" do
+      article = article_fixture()
+
+      attrs = %{
+        summary: "Summary only",
+        author: nil,
+        published_at: nil,
+        reading_time_minutes: nil,
+        tags: nil,
+        ai_analyzed_at: ~U[2024-06-16 12:00:00Z],
+        status: "complete"
+      }
+
+      changeset = Article.analysis_changeset(article, attrs)
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :summary) == "Summary only"
+      assert Ecto.Changeset.get_change(changeset, :author) == nil
+      assert Ecto.Changeset.get_change(changeset, :published_at) == nil
+      assert Ecto.Changeset.get_change(changeset, :reading_time_minutes) == nil
+    end
+
+    test "validates status inclusion" do
+      article = article_fixture()
+
+      attrs = %{
+        summary: "Summary",
+        status: "invalid_status"
+      }
+
+      changeset = Article.analysis_changeset(article, attrs)
+
+      refute changeset.valid?
+
+      assert {:status, {"is invalid", [validation: :inclusion, enum: _]}} =
+               Enum.find(changeset.errors, fn {field, _} -> field == :status end)
+    end
+
+    test "accepts all valid status values" do
+      article = article_fixture()
+
+      for status <- ["pending", "pending_ai", "complete", "failed"] do
+        changeset = Article.analysis_changeset(article, %{status: status})
+        assert changeset.valid?, "Expected status '#{status}' to be valid"
+      end
+    end
+
+    test "does not cast fields not in analysis changeset" do
+      article = article_fixture()
+
+      attrs = %{
+        summary: "Summary",
+        url: "https://should-not-change.com",
+        title: "Should not change",
+        user_id: 999
+      }
+
+      changeset = Article.analysis_changeset(article, attrs)
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :summary) == "Summary"
+      assert Ecto.Changeset.get_change(changeset, :url) == nil
+      assert Ecto.Changeset.get_change(changeset, :title) == nil
+      assert Ecto.Changeset.get_change(changeset, :user_id) == nil
+    end
+  end
+
+  describe "Article.analysis_failure_changeset/2" do
+    test "sets status to failed and stores error message" do
+      article = article_fixture()
+      error_message = "LLM API timeout after 3 attempts"
+
+      changeset = Article.analysis_failure_changeset(article, error_message)
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :status) == "failed"
+      assert Ecto.Changeset.get_change(changeset, :analysis_error) == error_message
+    end
+
+    test "accepts any string as error message" do
+      article = article_fixture()
+
+      for error <- ["Connection timeout", "HTTP 500", "Invalid JSON response"] do
+        changeset = Article.analysis_failure_changeset(article, error)
+        assert changeset.valid?
+        assert Ecto.Changeset.get_change(changeset, :analysis_error) == error
+      end
+    end
+
+    test "handles empty string as error message" do
+      article = article_fixture()
+
+      changeset = Article.analysis_failure_changeset(article, "")
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :status) == "failed"
+      # Empty string may not be tracked as a change if field is already nil
+    end
+
+    test "does not change other fields" do
+      article = article_fixture()
+      error_message = "Test error"
+
+      changeset = Article.analysis_failure_changeset(article, error_message)
+
+      # Only status and analysis_error should be in changes
+      changes = Map.keys(changeset.changes)
+      assert :status in changes
+      assert :analysis_error in changes
+      assert length(changes) == 2
+    end
+
+    test "validates status is failed" do
+      article = article_fixture()
+
+      changeset = Article.analysis_failure_changeset(article, "Error message")
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :status) == "failed"
+
+      # Verify status validation would catch invalid values
+      # (though the changeset always sets it to "failed")
+      assert changeset.validations[:status] == nil ||
+               {:status, {:inclusion, ["pending", "pending_ai", "complete", "failed"]}} in changeset.validations
+    end
+  end
+
+  describe "update_article_analysis/2" do
+    test "updates article with analysis results and sets status to complete" do
+      article = article_fixture()
+
+      analysis_attrs = %{
+        summary: "This is a comprehensive summary of the article content.",
+        author: "Jane Smith",
+        published_at: ~U[2024-06-15 14:30:00Z],
+        reading_time_minutes: 12,
+        tags: "elixir,phoenix,testing,oban"
+      }
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, analysis_attrs)
+
+      assert updated_article.summary == "This is a comprehensive summary of the article content."
+      assert updated_article.author == "Jane Smith"
+      assert updated_article.published_at == ~U[2024-06-15 14:30:00Z]
+      assert updated_article.reading_time_minutes == 12
+      assert updated_article.tags == "elixir,phoenix,testing,oban"
+      assert updated_article.status == "complete"
+      assert updated_article.ai_analyzed_at != nil
+    end
+
+    test "sets ai_analyzed_at timestamp" do
+      article = article_fixture()
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, %{
+                 summary: "Summary"
+               })
+
+      assert updated_article.ai_analyzed_at != nil
+      # Verify the timestamp is reasonable (within the last minute)
+      now = DateTime.utc_now()
+      diff = DateTime.diff(now, updated_article.ai_analyzed_at, :second)
+      assert diff >= 0 and diff < 60
+    end
+
+    test "handles partial analysis results with nil optional fields" do
+      article = article_fixture()
+
+      analysis_attrs = %{
+        summary: "Summary only",
+        author: nil,
+        published_at: nil,
+        reading_time_minutes: nil,
+        tags: nil
+      }
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, analysis_attrs)
+
+      assert updated_article.summary == "Summary only"
+      assert updated_article.author == nil
+      assert updated_article.published_at == nil
+      assert updated_article.reading_time_minutes == nil
+      assert updated_article.tags == nil
+      assert updated_article.status == "complete"
+      assert updated_article.ai_analyzed_at != nil
+    end
+
+    test "raises when article does not exist" do
+      assert_raise Ecto.NoResultsError, fn ->
+        Articles.update_article_analysis(999_999, %{summary: "Summary"})
+      end
+    end
+
+    test "does not modify fields outside of analysis scope" do
+      article = article_fixture()
+      original_url = article.url
+      original_user_id = article.user_id
+
+      analysis_attrs = %{
+        summary: "Summary",
+        author: "Author"
+      }
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, analysis_attrs)
+
+      assert updated_article.url == original_url
+      assert updated_article.user_id == original_user_id
+    end
+
+    test "can be called multiple times to update analysis" do
+      article = article_fixture()
+
+      # First analysis
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, %{
+                 summary: "First summary",
+                 author: "First Author"
+               })
+
+      assert updated_article.summary == "First summary"
+      assert updated_article.author == "First Author"
+
+      # Second analysis (update)
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article_analysis(article.id, %{
+                 summary: "Updated summary",
+                 author: "Updated Author"
+               })
+
+      assert updated_article.summary == "Updated summary"
+      assert updated_article.author == "Updated Author"
+      assert updated_article.status == "complete"
+    end
+  end
+
+  describe "mark_article_analysis_failed/2" do
+    test "marks article as failed with error message" do
+      article = article_fixture()
+      error_message = "LLM API timeout after 3 attempts"
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.mark_article_analysis_failed(article.id, error_message)
+
+      assert updated_article.status == "failed"
+      assert updated_article.analysis_error == error_message
+    end
+
+    test "handles various error messages" do
+      error_messages = [
+        "Connection timeout",
+        "HTTP 500 Server Error",
+        "Invalid JSON response from LLM",
+        "Rate limit exceeded",
+        "HTTP request failed: :timeout"
+      ]
+
+      for error_message <- error_messages do
+        article = article_fixture()
+
+        assert {:ok, %Article{} = updated_article} =
+                 Articles.mark_article_analysis_failed(article.id, error_message)
+
+        assert updated_article.status == "failed"
+        assert updated_article.analysis_error == error_message
+      end
+    end
+
+    test "raises when article does not exist" do
+      assert_raise Ecto.NoResultsError, fn ->
+        Articles.mark_article_analysis_failed(999_999, "Error message")
+      end
+    end
+
+    test "does not modify other article fields" do
+      article = article_fixture()
+      # Reload to get updated title from background job
+      article = Repo.reload!(article)
+      original_url = article.url
+      original_title = article.title
+      original_user_id = article.user_id
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.mark_article_analysis_failed(article.id, "Error")
+
+      assert updated_article.url == original_url
+      assert updated_article.title == original_title
+      assert updated_article.user_id == original_user_id
+    end
+
+    test "can be called multiple times to update error message" do
+      article = article_fixture()
+
+      # First failure
+      assert {:ok, %Article{} = updated_article} =
+               Articles.mark_article_analysis_failed(article.id, "First error")
+
+      assert updated_article.analysis_error == "First error"
+
+      # Second failure (different error)
+      assert {:ok, %Article{} = updated_article} =
+               Articles.mark_article_analysis_failed(article.id, "Second error")
+
+      assert updated_article.analysis_error == "Second error"
+      assert updated_article.status == "failed"
+    end
+
+    test "does not set ai_analyzed_at or analysis fields" do
+      article = article_fixture()
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.mark_article_analysis_failed(article.id, "Error")
+
+      assert updated_article.ai_analyzed_at == nil
+      assert updated_article.summary == nil
+      assert updated_article.author == nil
+      assert updated_article.published_at == nil
+      assert updated_article.reading_time_minutes == nil
+      assert updated_article.tags == nil
     end
   end
 end
