@@ -5,8 +5,12 @@ Save your articles for later! (without worrying about them being deleted)
 
 (also LLM enhanced!)
 
+## Local Setup
+- `brew install ollama`
+- `ollama pull llama3.2`
+- `ollama serve`
+
 ## Dev TODO
-- Article processing: generate tags, summary, author, published_at
 - Use title from LLM article analysis
 
 ### Improvements

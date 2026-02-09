@@ -9,7 +9,12 @@ defmodule WordStashWeb.Live.Articles.Show do
 
   def mount(%{"id" => id}, _session, socket) do
     article = Articles.get_article!(id)
+    if connected?(socket), do: Articles.subscribe(article.id)
     {:ok, assign(socket, article: article)}
+  end
+
+  def handle_info({:article_updated, article}, socket) do
+    {:noreply, assign(socket, article: article)}
   end
 
   def handle_event("archive", _params, socket) do
@@ -123,6 +128,48 @@ defmodule WordStashWeb.Live.Articles.Show do
                 <div class="mb-6">
                   <p class="text-lg text-base-content/80 leading-relaxed">
                     {@article.description}
+                  </p>
+                </div>
+              <% end %>
+
+              <%= if @article.author || @article.published_at do %>
+                <div class="mb-4 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
+                  <%= if @article.author do %>
+                    <span class="flex items-center space-x-1">
+                      <.icon name="hero-user" class="w-4 h-4" />
+                      <span class="font-medium">{@article.author}</span>
+                    </span>
+                  <% end %>
+                  <%= if @article.published_at do %>
+                    <span class="flex items-center space-x-1">
+                      <.icon name="hero-calendar" class="w-4 h-4" />
+                      <span>
+                        <span data-utc-datetime={utc_to_iso8601(@article.published_at)}>
+                          {Calendar.strftime(@article.published_at, "%B %d, %Y")}
+                        </span>
+                      </span>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <%= if @article.tags && @article.tags != "" do %>
+                <div class="my-4 flex flex-wrap gap-2">
+                  <%= for tag <- String.split(@article.tags, ",") do %>
+                    <span class="badge badge-soft badge-primary badge-sm">
+                      {String.trim(tag)}
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <%= if @article.summary && @article.summary != "" do %>
+                <div class="mb-6 p-4 bg-base-200/50 rounded-lg border border-base-300">
+                  <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
+                    Summary
+                  </label>
+                  <p class="text-base-content/80 leading-relaxed">
+                    {@article.summary}
                   </p>
                 </div>
               <% end %>

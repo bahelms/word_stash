@@ -8,6 +8,17 @@ defmodule WordStash.Articles do
   alias WordStash.Articles.Article
   alias WordStash.BackgroundJobs
 
+  def subscribe(article_id) do
+    Phoenix.PubSub.subscribe(WordStash.PubSub, "articles:#{article_id}")
+  end
+
+  defp broadcast({:ok, article} = result, event) do
+    Phoenix.PubSub.broadcast(WordStash.PubSub, "articles:#{article.id}", {event, article})
+    result
+  end
+
+  defp broadcast({:error, _} = error, _event), do: error
+
   @doc """
   Creates an article.
 
@@ -190,6 +201,7 @@ defmodule WordStash.Articles do
     article
     |> Article.analysis_changeset(attrs)
     |> Repo.update()
+    |> broadcast(:article_updated)
   end
 
   @doc """
@@ -207,6 +219,7 @@ defmodule WordStash.Articles do
     article
     |> Article.analysis_failure_changeset(error_message)
     |> Repo.update()
+    |> broadcast(:article_updated)
   end
 
   @doc """

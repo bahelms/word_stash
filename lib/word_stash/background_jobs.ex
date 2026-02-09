@@ -26,7 +26,12 @@ defmodule WordStash.BackgroundJobs do
     with {:get, {:ok, html}} <- {:get, http_client.get(url)},
          {:parse, {:ok, title}} <- {:parse, HTMLParser.extract_title(html)},
          {:ok, article} <- Articles.update_article_title(article_id, title),
-         {:ok, _article} <- Articles.update_article(article, %{status: "pending_ai"}) do
+         {:ok, article} <- Articles.update_article(article, %{status: "pending_ai"}) do
+      Phoenix.PubSub.broadcast(
+        WordStash.PubSub,
+        "articles:#{article.id}",
+        {:article_updated, article}
+      )
       %{article_id: article_id, url: url}
       |> WordStash.Workers.AnalyzeArticleWorker.enqueue()
 
