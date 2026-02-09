@@ -91,6 +91,48 @@ defmodule WordStashWeb.ArticlesShowTest do
       assert WordStash.Repo.get(WordStash.Articles.Article, article.id) == nil
     end
 
+    test "clicking title enters edit mode and saving updates title", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, article} = WordStash.Articles.update_article(article, %{title: "Original Title"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      assert render(view) =~ "Original Title"
+
+      view |> element("h1") |> render_click()
+
+      assert has_element?(view, "input[name='article[title]']")
+
+      view
+      |> form("form", article: %{title: "Updated Title"})
+      |> render_submit()
+
+      assert render(view) =~ "Updated Title"
+      refute has_element?(view, "input[name='article[title]']")
+
+      updated = WordStash.Articles.get_article!(article.id)
+      assert updated.title == "Updated Title"
+    end
+
+    test "clicking cancel exits title edit mode without saving", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, article} = WordStash.Articles.update_article(article, %{title: "Original Title"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view |> element("h1") |> render_click()
+
+      assert has_element?(view, "input[name='article[title]']")
+
+      view |> element("button[phx-click=cancel_title]") |> render_click()
+
+      refute has_element?(view, "input[name='article[title]']")
+      assert render(view) =~ "Original Title"
+
+      unchanged = WordStash.Articles.get_article!(article.id)
+      assert unchanged.title == "Original Title"
+    end
+
     test "displays last_read_at when set", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       {:ok, updated} = WordStash.Articles.touch_article_last_read_at(article)

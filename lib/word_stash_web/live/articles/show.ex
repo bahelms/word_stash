@@ -10,7 +10,7 @@ defmodule WordStashWeb.Live.Articles.Show do
   def mount(%{"id" => id}, _session, socket) do
     article = Articles.get_article!(id)
     if connected?(socket), do: Articles.subscribe(article.id)
-    {:ok, assign(socket, article: article)}
+    {:ok, assign(socket, article: article, editing_title: false, title_form: nil)}
   end
 
   def handle_info({:article_updated, article}, socket) do
@@ -27,6 +27,29 @@ defmodule WordStashWeb.Live.Articles.Show do
   def handle_event("delete", _params, socket) do
     Articles.delete_article(socket.assigns.article)
     {:noreply, push_navigate(socket, to: "/articles")}
+  end
+
+  def handle_event("edit_title", _params, socket) do
+    form =
+      socket.assigns.article
+      |> Articles.change_article(%{})
+      |> to_form()
+
+    {:noreply, assign(socket, editing_title: true, title_form: form)}
+  end
+
+  def handle_event("save_title", %{"article" => %{"title" => title}}, socket) do
+    case Articles.update_article(socket.assigns.article, %{title: title}) do
+      {:ok, updated} ->
+        {:noreply, assign(socket, article: updated, editing_title: false, title_form: nil)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, title_form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("cancel_title", _params, socket) do
+    {:noreply, assign(socket, editing_title: false, title_form: nil)}
   end
 
   def handle_event("visit", _params, socket) do
@@ -116,13 +139,44 @@ defmodule WordStashWeb.Live.Articles.Show do
                 </div>
               </div>
 
-              <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content mb-6">
-                <%= if @article.title && @article.title != "" do %>
-                  {@article.title}
-                <% else %>
-                  <span class="text-base-content/70 italic">Untitled Article</span>
-                <% end %>
-              </h1>
+              <%= if @editing_title do %>
+                <.form for={@title_form} phx-submit="save_title" class="mb-6">
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="text"
+                      name={@title_form[:title].name}
+                      value={@title_form[:title].value}
+                      class="input input-bordered text-lg sm:text-xl lg:text-2xl font-bold w-full h-auto py-3 sm:py-4"
+                      autofocus
+                      phx-key="Escape"
+                      phx-keydown="cancel_title"
+                    />
+                    <button type="submit" class="btn btn-success btn-sm flex-shrink-0" title="Save">
+                      <.icon name="hero-check" class="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="cancel_title"
+                      class="btn btn-error btn-sm flex-shrink-0"
+                      title="Cancel"
+                    >
+                      <.icon name="hero-x-mark" class="w-5 h-5" />
+                    </button>
+                  </div>
+                </.form>
+              <% else %>
+                <h1
+                  class="text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content mb-6 cursor-pointer hover:text-primary transition-colors"
+                  phx-click="edit_title"
+                  title="Click to edit title"
+                >
+                  <%= if @article.title && @article.title != "" do %>
+                    {@article.title}
+                  <% else %>
+                    <span class="text-base-content/70 italic">Untitled Article</span>
+                  <% end %>
+                </h1>
+              <% end %>
 
               <%= if @article.description && @article.description != "" do %>
                 <div class="mb-6">
