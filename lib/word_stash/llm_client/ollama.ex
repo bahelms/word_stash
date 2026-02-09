@@ -33,6 +33,7 @@ defmodule WordStash.LLMClient.Ollama do
     end
   end
 
+  # defp parse_ollama_response(%{"response" => response_text, "eval_count" => output_token_count, "prompt_eval_count" => input_token_count}) do
   defp parse_ollama_response(%{"response" => response_text}) do
     case Jason.decode(response_text) do
       {:ok, parsed} ->

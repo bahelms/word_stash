@@ -27,18 +27,16 @@ defmodule WordStash.LLMClient.Prompt do
 
     Please provide a JSON response with the following structure:
     {
-      "title": "The article title",
       "author": "Author name (or null if not found)",
-      "summary": "A 2-3 sentence summary of the article",
+      "summary": "A 4-5 sentence summary of the article",
       "tags": ["tag1", "tag2", "tag3"],
       "published_date": "ISO 8601 date string (or null if not found)",
       "reading_time_minutes": 5
     }
 
     Guidelines:
-    - Extract the actual article title from the content, not just the page title
     - Author should be the article author, not the website name
-    - Summary should capture the main points concisely
+    - Summary should capture the main points concisely without directly copy and pasting content
     - Tags should be relevant topics or keywords (3-5 tags)
     - published_date should be in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
     - reading_time_minutes should be estimated based on word count (assume 200 words per minute)
