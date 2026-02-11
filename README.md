@@ -11,8 +11,7 @@ Save your articles for later! (without worrying about them being deleted)
 - `ollama serve`
 
 ## Dev TODO
-- Use title from LLM article analysis
+- Backfill existing articles with LLM analysis
 
 ### Improvements
 - Article timestamp conversion to local is visible on page reload
-- Update article title by clicking on it on show page
