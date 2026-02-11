@@ -20,6 +20,8 @@ if System.get_env("PHX_SERVER") do
   config :word_stash, WordStashWeb.Endpoint, server: true
 end
 
+config :word_stash, :env, config_env()
+
 if config_env() == :prod do
   database_path =
     System.get_env("DATABASE_PATH") ||

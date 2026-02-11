@@ -187,7 +187,7 @@ defmodule WordStashWeb.Live.Articles.Show do
               <% end %>
 
               <%= if @article.author || @article.published_at do %>
-                <div class="mb-4 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
+                <div class="mb-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
                   <%= if @article.author do %>
                     <span class="flex items-center space-x-1">
                       <.icon name="hero-user" class="w-4 h-4" />
@@ -208,7 +208,7 @@ defmodule WordStashWeb.Live.Articles.Show do
               <% end %>
 
               <%= if @article.tags && @article.tags != "" do %>
-                <div class="my-4 flex flex-wrap gap-2">
+                <div class="mt-1 mb-4 flex flex-wrap gap-2">
                   <%= for tag <- String.split(@article.tags, ",") do %>
                     <span class="badge badge-soft badge-primary badge-sm">
                       {String.trim(tag)}
@@ -218,7 +218,7 @@ defmodule WordStashWeb.Live.Articles.Show do
               <% end %>
 
               <%= if @article.summary && @article.summary != "" do %>
-                <div class="mb-6 p-4 bg-base-200/50 rounded-lg border border-base-300">
+                <div class="p-4 bg-base-200/50 rounded-lg border border-base-300">
                   <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
                     Summary
                   </label>
@@ -230,75 +230,66 @@ defmodule WordStashWeb.Live.Articles.Show do
 
               <div class="divider"></div>
 
-              <div class="space-y-4">
-                <div>
-                  <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
-                    URL
-                  </label>
-                  <div class="flex items-center space-x-2">
-                    <a
-                      href={@article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-primary hover:text-primary-focus break-all flex-1"
-                    >
-                      {@article.url}
-                    </a>
-                    <button
-                      type="button"
-                      phx-click="visit"
-                      class="btn btn-primary btn-sm flex-shrink-0"
-                      id="article-visit-button"
-                    >
-                      <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" /> Visit
-                    </button>
-                    <%= if @article.archived_at == nil do %>
-                      <button
-                        type="button"
-                        phx-click="archive"
-                        class="btn btn-warning btn-sm flex-shrink-0"
-                        id="article-archive-button"
+              <div class="flex items-center flex-wrap gap-4">
+                <div class="flex items-center gap-x-4 gap-y-1 flex-wrap">
+                  <%= if @article.archived_at do %>
+                    <div class="flex items-center space-x-2 text-sm">
+                      <span class="font-semibold text-base-content/60 uppercase tracking-wide">
+                        Archived
+                      </span>
+                      <span
+                        class="text-base-content"
+                        data-utc-datetime={utc_to_iso8601(@article.archived_at)}
                       >
-                        <.icon name="hero-archive-box-arrow-down" class="w-4 h-4 mr-1" /> Archive
-                      </button>
-                    <% end %>
-                    <button
-                      type="button"
-                      phx-click="delete"
-                      phx-confirm="Are you sure you want to delete this article? This cannot be undone."
-                      class="btn btn-error btn-sm flex-shrink-0"
-                      id="article-delete-button"
-                    >
-                      <.icon name="hero-trash" class="w-4 h-4 mr-1" /> Delete
-                    </button>
-                  </div>
-                </div>
-
-                <%= if @article.archived_at do %>
-                  <div>
-                    <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
-                      Archived
-                    </label>
-                    <p class="text-base-content">
-                      <span data-utc-datetime={utc_to_iso8601(@article.archived_at)}>
                         {Calendar.strftime(@article.archived_at, "%B %d, %Y at %I:%M %p")}
                       </span>
-                    </p>
-                  </div>
-                <% end %>
+                    </div>
+                  <% end %>
 
-                <%= if @article.last_read_at do %>
-                  <div>
-                    <label class="text-sm font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
-                      Last read
-                    </label>
-                    <p class="text-base-content">
-                      <span data-utc-datetime={utc_to_iso8601(@article.last_read_at)}>
+                  <%= if @article.last_read_at do %>
+                    <div class="flex items-center space-x-2 text-sm">
+                      <span class="font-semibold text-base-content/60 uppercase tracking-wide">
+                        Last read
+                      </span>
+                      <span
+                        class="text-base-content"
+                        data-utc-datetime={utc_to_iso8601(@article.last_read_at)}
+                      >
                         {Calendar.strftime(@article.last_read_at, "%B %d, %Y at %I:%M %p")}
                       </span>
-                    </p>
-                  </div>
-                <% end %>
+                    </div>
+                  <% end %>
+                </div>
+
+                <div class="flex items-center space-x-2 ml-auto">
+                  <button
+                    type="button"
+                    phx-click="visit"
+                    class="btn btn-primary btn-sm flex-shrink-0"
+                    id="article-visit-button"
+                  >
+                    <.icon name="hero-arrow-top-right-on-square" class="w-4 h-4 mr-1" /> Visit
+                  </button>
+                  <%= if @article.archived_at == nil do %>
+                    <button
+                      type="button"
+                      phx-click="archive"
+                      class="btn btn-warning btn-sm flex-shrink-0"
+                      id="article-archive-button"
+                    >
+                      <.icon name="hero-archive-box-arrow-down" class="w-4 h-4 mr-1" /> Archive
+                    </button>
+                  <% end %>
+                  <button
+                    type="button"
+                    phx-click="delete"
+                    phx-confirm="Are you sure you want to delete this article? This cannot be undone."
+                    class="btn btn-error btn-sm flex-shrink-0"
+                    id="article-delete-button"
+                  >
+                    <.icon name="hero-trash" class="w-4 h-4 mr-1" /> Delete
+                  </button>
+                </div>
               </div>
             </div>
           </div>

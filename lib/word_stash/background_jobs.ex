@@ -13,7 +13,7 @@ defmodule WordStash.BackgroundJobs do
     http_client = Application.get_env(:word_stash, :http_client, WordStash.HTTPClient)
 
     # In test environment, run synchronously to avoid database sandbox issues
-    if Mix.env() == :test do
+    if Application.get_env(:word_stash, :env) == :test do
       fetch_article_title_sync(article_id, url, http_client)
     else
       Task.Supervisor.async_nolink(WordStash.BackgroundJobs.TaskSupervisor, fn ->
