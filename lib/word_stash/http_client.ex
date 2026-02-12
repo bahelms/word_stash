@@ -5,6 +5,8 @@ defmodule WordStash.HTTPClient do
 
   @behaviour WordStash.HTTPClientBehaviour
 
+  require Logger
+
   @doc """
   Fetches the HTML content from a given URL.
 
@@ -15,13 +17,14 @@ defmodule WordStash.HTTPClient do
     case Req.get(url,
            headers: [
              {"user-agent",
-              "Mozilla/5.0 (compatible; WordStash/1.0; +https://wordstash.app)"}
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"}
            ]
          ) do
       {:ok, %{status: status, body: body}} when status in 200..299 ->
         {:ok, body}
 
-      {:ok, %{status: status}} ->
+      {:ok, %{status: status, body: body}} ->
+        Logger.warning("HTTP non-200: #{inspect(body)}")
         {:error, "HTTP #{status}"}
 
       {:error, reason} ->
