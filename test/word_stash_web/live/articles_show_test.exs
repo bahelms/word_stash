@@ -24,7 +24,9 @@ defmodule WordStashWeb.ArticlesShowTest do
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
       assert has_element?(view, "#article-visit-button")
-      assert render(view) =~ article.url
+      # Reload article since background job may have updated the title
+      article = WordStash.Articles.get_article!(article.id)
+      assert render(view) =~ article.title
     end
 
     test "clicking Visit updates article last_read_at", %{conn: conn, user: user} do

@@ -455,12 +455,12 @@ defmodule WordStashWeb.CoreComponents do
       <div class="px-4 py-3 sm:px-6 sm:py-4">
         <div class="flex items-center justify-between">
           <!-- Logo/Brand -->
-          <div class="flex items-center space-x-3">
+          <.link navigate="/" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
               <.icon name="hero-book-open" class="w-5 h-5 sm:w-6 sm:h-6 text-primary-content" />
             </div>
             <span class="text-lg sm:text-xl font-bold text-base-content">Word Stash</span>
-          </div>
+          </.link>
           <!-- Action Buttons -->
           <div class="flex items-center space-x-2 sm:space-x-3">
             {render_slot(@actions)}

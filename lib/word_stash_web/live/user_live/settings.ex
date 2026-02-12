@@ -16,7 +16,7 @@ defmodule WordStashWeb.UserLive.Settings do
             class="btn btn-sm sm:btn-md btn-primary btn-outline"
           >
             <.icon name="hero-home" class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-            <span class="hidden sm:inline">Home</span>
+            <span class="hidden sm:inline">Stash</span>
           </.link>
 
           <.link

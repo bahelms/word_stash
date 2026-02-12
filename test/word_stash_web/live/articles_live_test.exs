@@ -43,7 +43,7 @@ defmodule WordStashWeb.ArticlesLiveTest do
     test "displays navigation links correctly", %{view: view} do
       html = render(view)
 
-      assert html =~ "Home"
+      assert html =~ "Stash"
       assert html =~ "Settings"
       assert html =~ "Logout"
     end

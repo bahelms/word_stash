@@ -66,7 +66,7 @@ defmodule WordStashWeb.WelcomeLiveTest do
       {:ok, _article_live, article_html} =
         live(conn, "/articles/#{article.id}")
 
-      assert article_html =~ article.url
+      assert article_html =~ article.title
     end
 
     test "shows error for invalid URL format", %{view: view} do
