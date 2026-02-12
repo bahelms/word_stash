@@ -12,7 +12,12 @@ defmodule WordStash.HTTPClient do
   """
   @impl true
   def get(url) do
-    case Req.get(url) do
+    case Req.get(url,
+           headers: [
+             {"user-agent",
+              "Mozilla/5.0 (compatible; WordStash/1.0; +https://wordstash.app)"}
+           ]
+         ) do
       {:ok, %{status: status, body: body}} when status in 200..299 ->
         {:ok, body}
 
