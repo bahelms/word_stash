@@ -388,6 +388,30 @@ defmodule WordStash.AccountsTest do
     end
   end
 
+  describe "stamp_last_login/1" do
+    test "sets last_login_at to the current time" do
+      user = user_fixture()
+      assert is_nil(user.last_login_at)
+
+      {:ok, updated_user} = Accounts.stamp_last_login(user)
+
+      assert updated_user.last_login_at
+      assert DateTime.diff(DateTime.utc_now(), updated_user.last_login_at, :second) < 5
+    end
+
+    test "overwrites a previous last_login_at value" do
+      user = user_fixture()
+      past = DateTime.add(DateTime.utc_now(:second), -3600)
+
+      user
+      |> Ecto.Changeset.change(last_login_at: past)
+      |> Repo.update!()
+
+      {:ok, updated_user} = Accounts.stamp_last_login(user)
+      assert DateTime.after?(updated_user.last_login_at, past)
+    end
+  end
+
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""

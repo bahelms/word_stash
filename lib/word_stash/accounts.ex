@@ -60,6 +60,17 @@ defmodule WordStash.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  @doc """
+  Updates the user's `last_login_at` timestamp to the current time.
+  """
+  def stamp_last_login(%User{} = user) do
+    now = DateTime.utc_now(:second)
+
+    user
+    |> Ecto.Changeset.change(last_login_at: now)
+    |> Repo.update()
+  end
+
   ## User registration
 
   @doc """

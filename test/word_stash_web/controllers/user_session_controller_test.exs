@@ -27,6 +27,18 @@ defmodule WordStashWeb.UserSessionControllerTest do
       assert response =~ ~p"/logout"
     end
 
+    test "sets last_login_at on successful login", %{conn: conn, user: user} do
+      user = set_password(user)
+      assert is_nil(WordStash.Repo.get!(WordStash.Accounts.User, user.id).last_login_at)
+
+      post(conn, ~p"/login", %{
+        "user" => %{"email" => user.email, "password" => valid_user_password()}
+      })
+
+      updated_user = WordStash.Repo.get!(WordStash.Accounts.User, user.id)
+      assert updated_user.last_login_at
+    end
+
     test "logs the user in with remember me", %{conn: conn, user: user} do
       user = set_password(user)
 
@@ -89,6 +101,18 @@ defmodule WordStashWeb.UserSessionControllerTest do
       assert response =~ "Word Stash"
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/logout"
+    end
+
+    test "sets last_login_at on successful magic link login", %{conn: conn, user: user} do
+      assert is_nil(WordStash.Repo.get!(WordStash.Accounts.User, user.id).last_login_at)
+      {token, _hashed_token} = generate_user_magic_link_token(user)
+
+      post(conn, ~p"/login", %{
+        "user" => %{"token" => token}
+      })
+
+      updated_user = WordStash.Repo.get!(WordStash.Accounts.User, user.id)
+      assert updated_user.last_login_at
     end
 
     test "redirects to login page when magic link is invalid", %{conn: conn} do

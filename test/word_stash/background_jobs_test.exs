@@ -41,7 +41,10 @@ defmodule WordStash.BackgroundJobsTest do
       assert updated_article.status == "pending_ai"
 
       # Verify AnalyzeArticleWorker job was enqueued
-      assert_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
+      assert_enqueued(
+        worker: AnalyzeArticleWorker,
+        args: %{article_id: article.id, url: article.url}
+      )
     end
 
     test "handles HTTP errors gracefully", %{user: user} do
@@ -67,7 +70,10 @@ defmodule WordStash.BackgroundJobsTest do
       assert updated_article.status == "pending"
 
       # Verify AnalyzeArticleWorker job was NOT enqueued on error
-      refute_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
+      refute_enqueued(
+        worker: AnalyzeArticleWorker,
+        args: %{article_id: article.id, url: article.url}
+      )
     end
 
     test "handles HTML parsing errors gracefully", %{user: user} do
@@ -104,7 +110,10 @@ defmodule WordStash.BackgroundJobsTest do
       assert updated_article.status == "pending"
 
       # Verify AnalyzeArticleWorker job was NOT enqueued on parsing error
-      refute_enqueued(worker: AnalyzeArticleWorker, args: %{article_id: article.id, url: article.url})
+      refute_enqueued(
+        worker: AnalyzeArticleWorker,
+        args: %{article_id: article.id, url: article.url}
+      )
     end
   end
 end

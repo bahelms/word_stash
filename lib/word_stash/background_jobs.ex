@@ -32,6 +32,7 @@ defmodule WordStash.BackgroundJobs do
         "articles:#{article.id}",
         {:article_updated, article}
       )
+
       %{article_id: article_id, url: url}
       |> WordStash.Workers.AnalyzeArticleWorker.enqueue()
 

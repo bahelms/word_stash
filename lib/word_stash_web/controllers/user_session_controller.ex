@@ -17,6 +17,7 @@ defmodule WordStashWeb.UserSessionController do
     case Accounts.login_user_by_magic_link(token) do
       {:ok, {user, tokens_to_disconnect}} ->
         UserAuth.disconnect_sessions(tokens_to_disconnect)
+        Accounts.stamp_last_login(user)
 
         conn
         |> put_flash(:info, info)
@@ -34,6 +35,8 @@ defmodule WordStashWeb.UserSessionController do
     %{"email" => email, "password" => password} = user_params
 
     if user = Accounts.get_user_by_email_and_password(email, password) do
+      Accounts.stamp_last_login(user)
+
       conn
       |> put_flash(:info, info)
       |> UserAuth.log_in_user(user, user_params)
