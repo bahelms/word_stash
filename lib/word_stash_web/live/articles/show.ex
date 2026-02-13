@@ -10,11 +10,14 @@ defmodule WordStashWeb.Live.Articles.Show do
   def mount(%{"id" => id}, _session, socket) do
     article = Articles.get_article!(id)
     if connected?(socket), do: Articles.subscribe(article.id)
-    {:ok, assign(socket, article: article, editing_title: false, title_form: nil)}
+
+    {:ok,
+     assign(socket, article: article, editing_title: false, title_form: nil, analyzing: false)}
   end
 
   def handle_info({:article_updated, article}, socket) do
-    {:noreply, assign(socket, article: article)}
+    analyzing = socket.assigns.analyzing and article.status not in ["complete", "failed"]
+    {:noreply, assign(socket, article: article, analyzing: analyzing)}
   end
 
   def handle_event("archive", _params, socket) do
@@ -50,6 +53,15 @@ defmodule WordStashWeb.Live.Articles.Show do
 
   def handle_event("cancel_title", _params, socket) do
     {:noreply, assign(socket, editing_title: false, title_form: nil)}
+  end
+
+  def handle_event("analyze", _params, socket) do
+    article = socket.assigns.article
+
+    %{article_id: article.id, url: article.url}
+    |> WordStash.Workers.AnalyzeArticleWorker.enqueue()
+
+    {:noreply, assign(socket, analyzing: true)}
   end
 
   def handle_event("visit", _params, socket) do
@@ -128,12 +140,18 @@ defmodule WordStashWeb.Live.Articles.Show do
                         {Calendar.strftime(@article.inserted_at, "%B %d, %Y at %I:%M %p")}
                       </span>
                     </div>
-                    <%= if @article.status do %>
-                      <div class="badge badge-outline badge-sm">
-                        {String.replace(@article.status, "_", " ")
-                        |> String.split(" ")
-                        |> Enum.map_join(" ", &String.capitalize(&1, :ascii))}
-                      </div>
+                    <%= cond do %>
+                      <% @analyzing -> %>
+                        <span class="loading loading-spinner loading-xs"></span>
+                      <% @article.status in ["pending", "pending_ai", "failed"] -> %>
+                        <button
+                          type="button"
+                          phx-click="analyze"
+                          class="btn btn-secondary btn-xs"
+                        >
+                          <.icon name="hero-sparkles" class="w-3 h-3 mr-1" /> Analyze Article
+                        </button>
+                      <% true -> %>
                     <% end %>
                   </div>
                 </div>

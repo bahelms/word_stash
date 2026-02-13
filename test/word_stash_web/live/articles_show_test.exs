@@ -1,5 +1,6 @@
 defmodule WordStashWeb.ArticlesShowTest do
   use WordStashWeb.ConnCase
+  use Oban.Testing, repo: WordStash.Repo
 
   import Phoenix.LiveViewTest
   import WordStash.AccountsFixtures
@@ -133,6 +134,96 @@ defmodule WordStashWeb.ArticlesShowTest do
 
       unchanged = WordStash.Articles.get_article!(article.id)
       assert unchanged.title == "Original Title"
+    end
+
+    test "shows Analyze Article button when status is pending", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      assert has_element?(view, "button[phx-click=analyze]")
+      assert render(view) =~ "Analyze Article"
+    end
+
+    test "shows Analyze Article button when status is pending_ai", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending_ai"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      assert has_element?(view, "button[phx-click=analyze]")
+      assert render(view) =~ "Analyze Article"
+    end
+
+    test "shows Analyze Article button when status is failed", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "failed"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      assert has_element?(view, "button[phx-click=analyze]")
+      assert render(view) =~ "Analyze Article"
+    end
+
+    test "does not show Analyze Article button when status is complete", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "complete"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      refute has_element?(view, "button[phx-click=analyze]")
+    end
+
+    test "clicking Analyze Article enqueues the analysis worker", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending_ai"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view
+      |> element("button[phx-click=analyze]")
+      |> render_click()
+
+      assert_enqueued(
+        worker: WordStash.Workers.AnalyzeArticleWorker,
+        args: %{article_id: article.id, url: article.url}
+      )
+    end
+
+    test "shows spinner after clicking Analyze Article", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      refute has_element?(view, ".loading-spinner")
+
+      view
+      |> element("button[phx-click=analyze]")
+      |> render_click()
+
+      assert has_element?(view, ".loading-spinner")
+      refute has_element?(view, "button[phx-click=analyze]")
+    end
+
+    test "spinner is removed when article status becomes complete", %{conn: conn, user: user} do
+      article = article_fixture(%{user_id: user.id})
+      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+
+      {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
+
+      view
+      |> element("button[phx-click=analyze]")
+      |> render_click()
+
+      assert has_element?(view, ".loading-spinner")
+
+      completed_article = %{article | status: "complete"}
+      send(view.pid, {:article_updated, completed_article})
+
+      refute has_element?(view, ".loading-spinner")
+      refute has_element?(view, "button[phx-click=analyze]")
     end
 
     test "displays last_read_at when set", %{conn: conn, user: user} do
