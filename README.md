@@ -11,6 +11,7 @@ Save your articles for later! (without worrying about them being deleted)
 - `ollama serve`
 
 ## Dev TODO
+- Improve rate limit handling in for Groq in prod
 - Backfill existing articles with LLM analysis
 
 ### Improvements

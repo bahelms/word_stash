@@ -105,7 +105,15 @@ defmodule WordStashWeb.ArticlesLive do
                       {article.description}
                     <% end %>
 
-                    <div class="card-actions justify-end">
+                    <div class="card-actions justify-between items-center">
+                      <%= if article.reading_time_minutes do %>
+                        <span class="text-sm text-base-content/60 flex items-center">
+                          <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+                          {article.reading_time_minutes} min read
+                        </span>
+                      <% else %>
+                        <span></span>
+                      <% end %>
                       <button
                         type="button"
                         phx-click="visit"

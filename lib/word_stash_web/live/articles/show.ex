@@ -186,7 +186,7 @@ defmodule WordStashWeb.Live.Articles.Show do
                 </div>
               <% end %>
 
-              <%= if @article.author || @article.published_at do %>
+              <%= if @article.author || @article.published_at || @article.reading_time_minutes do %>
                 <div class="mb-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/70">
                   <%= if @article.author do %>
                     <span class="flex items-center space-x-1">
@@ -202,6 +202,12 @@ defmodule WordStashWeb.Live.Articles.Show do
                           {Calendar.strftime(@article.published_at, "%B %d, %Y")}
                         </span>
                       </span>
+                    </span>
+                  <% end %>
+                  <%= if @article.reading_time_minutes do %>
+                    <span class="flex items-center space-x-1">
+                      <.icon name="hero-clock" class="w-4 h-4" />
+                      <span>{@article.reading_time_minutes} min read</span>
                     </span>
                   <% end %>
                 </div>
