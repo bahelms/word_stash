@@ -33,7 +33,7 @@ config :word_stash, Oban,
 config :word_stash,
   ollama_endpoint: "http://localhost:11434",
   ollama_model: "llama3.2",
-  groq_model: "llama-3.3-70b-versatile"
+  groq_model: "llama-3.1-8b-instant"
 
 # Configures the endpoint
 config :word_stash, WordStashWeb.Endpoint,
