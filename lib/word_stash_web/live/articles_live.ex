@@ -3,7 +3,8 @@ defmodule WordStashWeb.ArticlesLive do
   alias WordStash.Articles
 
   def mount(_params, _session, socket) do
-    articles = Articles.list_articles()
+    user_id = socket.assigns.current_scope.user.id
+    articles = Articles.list_user_articles(user_id)
     {:ok, assign(socket, articles: articles)}
   end
 

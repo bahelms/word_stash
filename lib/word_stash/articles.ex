@@ -63,7 +63,7 @@ defmodule WordStash.Articles do
   def get_article!(id), do: Repo.get!(Article, id)
 
   @doc """
-  Lists articles for a specific user.
+  Lists non-archived articles for a specific user.
 
   ## Examples
 
@@ -74,24 +74,29 @@ defmodule WordStash.Articles do
   def list_user_articles(user_id) do
     Article
     |> where(user_id: ^user_id)
+    |> where([a], is_nil(a.archived_at))
     |> order_by([a], desc: a.inserted_at)
     |> Repo.all()
   end
 
   @doc """
-  Lists all articles.
+  Gets a single article belonging to a specific user.
+
+  Raises `Ecto.NoResultsError` if the Article does not exist or does not belong to the user.
 
   ## Examples
 
-      iex> list_articles()
-      [%Article{}, ...]
+      iex> get_user_article!(user_id, 123)
+      %Article{}
+
+      iex> get_user_article!(user_id, 456)
+      ** (Ecto.NoResultsError)
 
   """
-  def list_articles do
+  def get_user_article!(user_id, id) do
     Article
-    |> where([a], is_nil(a.archived_at))
-    |> order_by([a], desc: a.inserted_at)
-    |> Repo.all()
+    |> where(user_id: ^user_id, id: ^id)
+    |> Repo.one!()
   end
 
   @doc """

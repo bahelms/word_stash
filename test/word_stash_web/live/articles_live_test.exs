@@ -66,6 +66,25 @@ defmodule WordStashWeb.ArticlesLiveTest do
       refute has_element?(view, "#article-visit-#{archived.id}")
     end
 
+    test "does not show other users' articles", %{conn: conn, user: user} do
+      other_user = user_fixture()
+      other_article = article_fixture(%{user_id: other_user.id, url: "https://other-user.com"})
+      my_article = article_fixture(%{user_id: user.id, url: "https://my-article.com"})
+
+      scope = WordStash.Accounts.Scope.for_user(user)
+      conn = conn |> log_in_user(user) |> assign(:current_scope, scope)
+      {:ok, view, _html} = live(conn, ~p"/articles")
+
+      assert has_element?(view, "#article-visit-#{my_article.id}")
+      refute has_element?(view, "#article-visit-#{other_article.id}")
+    end
+
+    test "redirects unauthenticated users to login", %{conn: _conn} do
+      conn = Phoenix.ConnTest.build_conn()
+      assert {:error, {:redirect, %{to: path}}} = live(conn, ~p"/articles")
+      assert path =~ "/login"
+    end
+
     test "clicking Visit updates article last_read_at", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       assert article.last_read_at == nil

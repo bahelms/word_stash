@@ -29,19 +29,21 @@ defmodule WordStash.ArticlesTest do
       article
     end
 
-    test "list_articles/0 returns all articles" do
-      article1 = article_fixture(%{url: "https://example1.com"})
-      article2 = article_fixture(%{url: "https://example2.com"})
-      articles = Articles.list_articles()
+    test "list_user_articles/1 returns non-archived articles for a user" do
+      user = user_fixture()
+      article1 = article_fixture(%{url: "https://example1.com", user_id: user.id})
+      article2 = article_fixture(%{url: "https://example2.com", user_id: user.id})
+      articles = Articles.list_user_articles(user.id)
       assert length(articles) == 2
       assert Enum.any?(articles, fn a -> a.url == article1.url end)
       assert Enum.any?(articles, fn a -> a.url == article2.url end)
     end
 
-    test "list_articles/0 excludes archived articles" do
-      _archived = article_fixture(%{url: "https://archived.com", archived_at: DateTime.utc_now()})
-      active = article_fixture(%{url: "https://active.com"})
-      articles = Articles.list_articles()
+    test "list_user_articles/1 excludes archived articles" do
+      user = user_fixture()
+      _archived = article_fixture(%{url: "https://archived.com", user_id: user.id, archived_at: DateTime.utc_now()})
+      active = article_fixture(%{url: "https://active.com", user_id: user.id})
+      articles = Articles.list_user_articles(user.id)
       assert length(articles) == 1
       assert Enum.any?(articles, fn a -> a.url == active.url end)
     end
@@ -71,7 +73,7 @@ defmodule WordStash.ArticlesTest do
       assert Articles.get_article!(article.id) == article
     end
 
-    test "list_user_articles/1 returns articles for specific user" do
+    test "list_user_articles/1 returns articles only for the given user" do
       user1 = user_fixture()
       user2 = user_fixture()
       article1 = article_fixture(%{user_id: user1.id, url: "https://user1-article.com"})

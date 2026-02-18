@@ -19,6 +19,22 @@ defmodule WordStashWeb.ArticlesShowTest do
   end
 
   describe "Show" do
+    test "raises when accessing another user's article", %{conn: conn} do
+      other_user = user_fixture()
+      other_article = article_fixture(%{user_id: other_user.id})
+
+      assert_raise Ecto.NoResultsError, fn ->
+        live(conn, ~p"/articles/#{other_article.id}")
+      end
+    end
+
+    test "redirects unauthenticated users to login", %{conn: _conn} do
+      conn = Phoenix.ConnTest.build_conn()
+      article = article_fixture()
+      assert {:error, {:redirect, %{to: path}}} = live(conn, ~p"/articles/#{article.id}")
+      assert path =~ "/login"
+    end
+
     test "displays article", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
 
@@ -234,7 +250,7 @@ defmodule WordStashWeb.ArticlesShowTest do
 
       html = render(view)
       assert html =~ "Last read"
-      assert html =~ Calendar.strftime(updated.last_read_at, "%B %d, %Y at %I:%M %p")
+      assert html =~ DateTime.to_iso8601(updated.last_read_at)
     end
   end
 end

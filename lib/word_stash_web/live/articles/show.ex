@@ -8,7 +8,8 @@ defmodule WordStashWeb.Live.Articles.Show do
     do: NaiveDateTime.to_iso8601(ndt) |> String.replace(" ", "T") |> Kernel.<>("Z")
 
   def mount(%{"id" => id}, _session, socket) do
-    article = Articles.get_article!(id)
+    user_id = socket.assigns.current_scope.user.id
+    article = Articles.get_user_article!(user_id, id)
     if connected?(socket), do: Articles.subscribe(article.id)
 
     {:ok,
