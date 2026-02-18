@@ -101,6 +101,7 @@ defmodule WordStashWeb.WelcomeLive do
                       phx-debounce="300"
                       class="input input-bordered input-lg w-full focus:input-primary transition-colors duration-200"
                       required
+                      autofocus
                     />
                   </div>
 

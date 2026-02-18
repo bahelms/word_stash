@@ -141,9 +141,10 @@ defmodule WordStashWeb.Live.Articles.Show do
                       </span>
                     </div>
                     <%= cond do %>
-                      <% @analyzing -> %>
+                      <% @analyzing or @article.status == "pending_ai" -> %>
                         <span class="loading loading-spinner loading-xs"></span>
-                      <% @article.status in ["pending", "pending_ai", "failed"] -> %>
+                        <span class="text-sm text-base-content/60 pl-1">analyzing article...</span>
+                      <% @article.status in ["pending", "failed"] -> %>
                         <button
                           type="button"
                           phx-click="analyze"

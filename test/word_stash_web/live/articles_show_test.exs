@@ -138,7 +138,7 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "shows Analyze Article button when status is pending", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -146,14 +146,14 @@ defmodule WordStashWeb.ArticlesShowTest do
       assert render(view) =~ "Analyze Article"
     end
 
-    test "shows Analyze Article button when status is pending_ai", %{conn: conn, user: user} do
+    test "shows spinner when status is pending_ai", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
       {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending_ai"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
-      assert has_element?(view, "button[phx-click=analyze]")
-      assert render(view) =~ "Analyze Article"
+      assert has_element?(view, "span.loading.loading-spinner")
+      refute has_element?(view, "button[phx-click=analyze]")
     end
 
     test "shows Analyze Article button when status is failed", %{conn: conn, user: user} do
@@ -177,7 +177,7 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "clicking Analyze Article enqueues the analysis worker", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending_ai"})
+      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -193,7 +193,7 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "shows spinner after clicking Analyze Article", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -209,7 +209,7 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "spinner is removed when article status becomes complete", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = WordStash.Articles.update_article(article, %{status: "pending"})
+      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
