@@ -53,11 +53,17 @@ const LocalTimeHook = {
   }
 }
 
+const AutoFocusHook = {
+  mounted() {
+    this.el.focus()
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, OpenUrl: OpenUrlHook, LocalTime: LocalTimeHook},
+  hooks: {...colocatedHooks, OpenUrl: OpenUrlHook, LocalTime: LocalTimeHook, AutoFocus: AutoFocusHook},
 })
 
 // Show progress bar on live navigation and form submits

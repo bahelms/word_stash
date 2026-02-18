@@ -99,9 +99,10 @@ defmodule WordStashWeb.WelcomeLive do
                       value={@url}
                       phx-change="url-change"
                       phx-debounce="300"
+                      phx-hook="AutoFocus"
+                      id="stash-url-input"
                       class="input input-bordered input-lg w-full focus:input-primary transition-colors duration-200"
                       required
-                      autofocus
                     />
                   </div>
 

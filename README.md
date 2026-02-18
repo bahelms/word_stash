@@ -13,6 +13,3 @@ Save your articles for later! (without worrying about them being deleted)
 ## Dev TODO
 - Improve rate limit handling in for Groq in prod
 - Backfill existing articles with LLM analysis
-
-### Improvements
-- Article timestamp conversion to local is visible on page reload

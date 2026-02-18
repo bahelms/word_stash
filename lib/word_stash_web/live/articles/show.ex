@@ -136,9 +136,7 @@ defmodule WordStashWeb.Live.Articles.Show do
                   <div>
                     <div class="text-sm text-base-content/60 mb-1">
                       Stashed on
-                      <span data-utc-datetime={utc_to_iso8601(@article.inserted_at)}>
-                        {Calendar.strftime(@article.inserted_at, "%B %d, %Y at %I:%M %p")}
-                      </span>
+                      <span data-utc-datetime={utc_to_iso8601(@article.inserted_at)}></span>
                     </div>
                     <%= cond do %>
                       <% @analyzing or @article.status == "pending_ai" -> %>
@@ -217,9 +215,7 @@ defmodule WordStashWeb.Live.Articles.Show do
                     <span class="flex items-center space-x-1">
                       <.icon name="hero-calendar" class="w-4 h-4" />
                       <span>
-                        <span data-utc-datetime={utc_to_iso8601(@article.published_at)}>
-                          {Calendar.strftime(@article.published_at, "%B %d, %Y")}
-                        </span>
+                        <span data-utc-datetime={utc_to_iso8601(@article.published_at)}></span>
                       </span>
                     </span>
                   <% end %>
@@ -265,9 +261,7 @@ defmodule WordStashWeb.Live.Articles.Show do
                       <span
                         class="text-base-content"
                         data-utc-datetime={utc_to_iso8601(@article.archived_at)}
-                      >
-                        {Calendar.strftime(@article.archived_at, "%B %d, %Y at %I:%M %p")}
-                      </span>
+                      ></span>
                     </div>
                   <% end %>
 
@@ -279,9 +273,7 @@ defmodule WordStashWeb.Live.Articles.Show do
                       <span
                         class="text-base-content"
                         data-utc-datetime={utc_to_iso8601(@article.last_read_at)}
-                      >
-                        {Calendar.strftime(@article.last_read_at, "%B %d, %Y at %I:%M %p")}
-                      </span>
+                      ></span>
                     </div>
                   <% end %>
                 </div>
