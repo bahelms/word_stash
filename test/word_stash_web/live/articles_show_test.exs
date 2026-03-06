@@ -154,7 +154,11 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "shows Analyze Article button when status is pending", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
+
+      {:ok, _article} =
+        article.id
+        |> WordStash.Articles.get_article!()
+        |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -193,7 +197,11 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "clicking Analyze Article enqueues the analysis worker", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
+
+      {:ok, _article} =
+        article.id
+        |> WordStash.Articles.get_article!()
+        |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -209,7 +217,11 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "shows spinner after clicking Analyze Article", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
+
+      {:ok, _article} =
+        article.id
+        |> WordStash.Articles.get_article!()
+        |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 
@@ -225,7 +237,11 @@ defmodule WordStashWeb.ArticlesShowTest do
 
     test "spinner is removed when article status becomes complete", %{conn: conn, user: user} do
       article = article_fixture(%{user_id: user.id})
-      {:ok, _article} = article.id |> WordStash.Articles.get_article!() |> WordStash.Articles.update_article(%{status: "pending"})
+
+      {:ok, _article} =
+        article.id
+        |> WordStash.Articles.get_article!()
+        |> WordStash.Articles.update_article(%{status: "pending"})
 
       {:ok, view, _html} = live(conn, ~p"/articles/#{article.id}")
 

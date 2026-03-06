@@ -41,7 +41,14 @@ defmodule WordStash.ArticlesTest do
 
     test "list_user_articles/1 excludes archived articles" do
       user = user_fixture()
-      _archived = article_fixture(%{url: "https://archived.com", user_id: user.id, archived_at: DateTime.utc_now()})
+
+      _archived =
+        article_fixture(%{
+          url: "https://archived.com",
+          user_id: user.id,
+          archived_at: DateTime.utc_now()
+        })
+
       active = article_fixture(%{url: "https://active.com", user_id: user.id})
       articles = Articles.list_user_articles(user.id)
       assert length(articles) == 1

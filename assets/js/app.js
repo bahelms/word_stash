@@ -48,7 +48,12 @@ const LocalTimeHook = {
   formatLocalTimes() {
     this.el.querySelectorAll("[data-utc-datetime]").forEach((el) => {
       const utc = el.getAttribute("data-utc-datetime")
-      if (utc) el.textContent = formatUtcToLocal(utc)
+      if (utc) {
+        const dateOnly = el.hasAttribute("data-date-only")
+        el.textContent = dateOnly
+          ? new Date(utc).toLocaleDateString(undefined, { dateStyle: "long" })
+          : formatUtcToLocal(utc)
+      }
     })
   }
 }

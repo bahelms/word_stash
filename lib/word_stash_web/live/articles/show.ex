@@ -216,7 +216,8 @@ defmodule WordStashWeb.Live.Articles.Show do
                     <span class="flex items-center space-x-1">
                       <.icon name="hero-calendar" class="w-4 h-4" />
                       <span>
-                        <span data-utc-datetime={utc_to_iso8601(@article.published_at)}></span>
+                        <span data-utc-datetime={utc_to_iso8601(@article.published_at)} data-date-only>
+                        </span>
                       </span>
                     </span>
                   <% end %>
@@ -262,7 +263,8 @@ defmodule WordStashWeb.Live.Articles.Show do
                       <span
                         class="text-base-content"
                         data-utc-datetime={utc_to_iso8601(@article.archived_at)}
-                      ></span>
+                      >
+                      </span>
                     </div>
                   <% end %>
 
@@ -274,7 +276,8 @@ defmodule WordStashWeb.Live.Articles.Show do
                       <span
                         class="text-base-content"
                         data-utc-datetime={utc_to_iso8601(@article.last_read_at)}
-                      ></span>
+                      >
+                      </span>
                     </div>
                   <% end %>
                 </div>
