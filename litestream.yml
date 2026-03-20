@@ -4,3 +4,8 @@ dbs:
   - path: ${DATABASE_PATH}
     replicas:
       - url: ${REPLICA_URL}
+        sync-interval: 24h
+        snapshot-interval: 72h
+        retention: 72h
+        retention-check-interval: 24h
+
